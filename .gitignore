@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.DS_Store
+
+# Local agent-owned state. Keep schemas/templates, ignore real content.
+memory/**
+!memory/
+!memory/README.md
+
+credentials/**
+!credentials/
+!credentials/README.md
+!credentials/TEMPLATE.md
+
+tmp/
