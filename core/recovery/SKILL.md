@@ -16,13 +16,11 @@ Use this only after a concrete failure.
 - **Bad token**: `/ping` works but `/version` returns `401`.
 - **No accessibility state**: HTTP/content provider returns accessibility unavailable or empty state.
 - **Input failed**: tap/type returns success but the UI did not change.
-- **App blocked**: permission dialog, login wall, credential screen, captcha, crash, or frozen UI.
+- **App blocked**: permission dialog, login wall, credential screen, crash, or frozen UI.
 
 ## ADB Recovery
 
 If the device is unauthorized, offline, or missing, stop and tell the user what ADB reported. Do not guess a serial.
-
-If the Portal package is missing and the user allows setup, install public Portal and enable required services using the project-specific APK source the user provides. Do not download unknown APKs.
 
 If Portal is installed but HTTP is off:
 
@@ -59,12 +57,10 @@ After a failed tap or input:
 
 1. Observe again.
 2. Check whether a permission dialog, login screen, or keyboard changed the target.
-3. Use UI-tree bounds if available. If not, use screenshots carefully.
+3. Use UI-tree bounds if available. If not - use screenshots.
 4. Try one alternative action.
 5. If still stuck, stop and report the exact blocker.
 
-Do not repeat the same failed tap/input more than twice.
-
 ## Credential Or Human-Gated Screens
 
-If the blocker is login, API key, OTP, 2FA, captcha, payment, account recovery, or consent for destructive action, read `core/credentials/SKILL.md` and ask the user.
+If the blocker is login, API key, payment, account recovery, or consent for destructive action, read `core/credentials/SKILL.md` and ask the user.

@@ -5,7 +5,7 @@ description: Use when an Android screen asks for login, password, API key, OTP, 
 
 # Android Credentials
 
-Default behavior: stop and ask the user if credentials are not already explicitly authorized.
+Default behavior: stop and ask the user if the credintails are not set.
 
 ## Credential Screens
 
@@ -13,11 +13,8 @@ Treat these as credential or human-gated screens:
 
 - username, email, phone login
 - password
-- API key or access token
-- OTP, 2FA, authenticator code, recovery code
-- captcha or anti-bot challenge
+- API key.
 - payment card, bank, billing, or purchase confirmation
-- account deletion, logout, uninstall, data wipe, or destructive consent
 
 ## Ask Before Acting
 
@@ -25,10 +22,8 @@ Ask one short question and wait. Offer concrete options:
 
 - user takes over on the device
 - user provides/authorizes a local credentials file
-- user enters credentials on the device
+- user enters credentials.
 - user approves skipping the login-gated task
-
-Do not ask the user to paste secrets into the chat unless they explicitly choose that path.
 
 ## Local Credential Files
 

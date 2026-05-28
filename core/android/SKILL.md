@@ -1,18 +1,17 @@
 ---
 name: android-mobile-harness
-description: Use for Android phone control through ADB and public Mobilerun Portal HTTP. Classifies ADB-only, Hybrid, Portal HTTP-only, and Blocked modes; defines observe-act-verify rules and app-card loading.
+description: Use for Android phone control through ADB and Mobilerun Portal HTTP. Classifies ADB-only, Hybrid, Portal HTTP-only, and Blocked modes; defines observe-act-verify rules and app-card loading.
 ---
 
 # Android Mobile Harness
 
-Use this when operating an Android phone with ADB and/or public Mobilerun Portal.
+Use this when operating an Android phone with ADB and/or Mobilerun Portal.
 
 ## Scope
 
 - Android only.
 - Public Portal only: `com.mobilerun.portal`.
 - Portal local control is HTTP only.
-- WebSocket, iOS, internal Portal, cloud task dispatch, and MCP are out of scope.
 
 ## Capability Classification
 
@@ -99,14 +98,14 @@ adb -s <serial> shell monkey -p <package> 1
 adb -s <serial> shell pm list packages
 ```
 
-Prefer UI-tree coordinates over guessed screenshot coordinates when possible. If the UI tree is unavailable or unsuitable, use screenshots carefully.
+Prefer UI-tree coordinates over guessed screenshot coordinates when possible. But if UI tree is not available 
+or is not suitable for some reasons, use the screenshots.
 
 ## Observe-Act-Verify Loop
 
 1. Observe current state before acting.
 2. Identify foreground package and activity.
 3. Load `apps/<package>/CARD.md` if present and not already loaded this turn.
-4. Choose the least fragile action: structured selector/state first, coordinate tap last.
 5. Act once.
 6. Observe again and verify the expected change.
 7. If the expected change did not happen, read `core/recovery/SKILL.md`.

@@ -2,14 +2,13 @@
 
 Portable Android operating instructions for AI agents that already have a way to use ADB and/or Mobilerun Portal.
 
-This repository is not an agent, runtime, MCP server, or phone-control binary. It is a small Markdown harness that tells agents how to classify Android control capabilities, use ADB and public Mobilerun Portal HTTP safely, load app cards on demand, handle credential screens, and maintain optional local operational memory.
+This repository is a small Markdown harness that tells agents how to classify Android control capabilities, use ADB and public Mobilerun Portal HTTP safely, load app cards on demand, handle credential screens, and maintain local operational memory. *** Should we keep memory? Or the codex, open claw, claude etc. already have it and having one more memory layer actually makes it worse?
 
 ## Scope
 
 - Android only.
 - Public Portal only: `com.mobilerun.portal`.
 - HTTP only for Portal local control.
-- No iOS, internal Portal, WebSocket, cloud task runner, or MCP assumptions.
 
 ## Loading Model
 
@@ -41,4 +40,4 @@ An installed Portal APK alone is not enough when ADB is unavailable.
 
 ## Local State
 
-`memory/` and `credentials/` are local, ignored folders. The repository tracks only their rules/templates. Agents may write non-sensitive operational memory. Real credentials should never be committed.
+`memory/` and `credentials/` are local, ignored folders. The repository tracks only their rules/templates. Agents may write operational memory.
