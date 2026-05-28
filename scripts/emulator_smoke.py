@@ -4,10 +4,12 @@
 from __future__ import annotations
 
 import argparse
+import http.client
 import json
 import re
 import subprocess
 import sys
+import time
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
@@ -49,15 +51,21 @@ def parse_content_result(raw: str) -> str | None:
     return result if isinstance(result, str) else json.dumps(result)
 
 
-def http_get(url: str, token: str | None = None) -> tuple[int, str]:
+def http_get(url: str, token: str | None = None, attempts: int = 5) -> tuple[int, str]:
     request = urllib.request.Request(url)
     if token:
         request.add_header("Authorization", f"Bearer {token}")
-    try:
-        with urllib.request.urlopen(request, timeout=10) as response:
-            return response.status, response.read().decode("utf-8", errors="replace")
-    except urllib.error.HTTPError as exc:
-        return exc.code, exc.read().decode("utf-8", errors="replace")
+    for attempt in range(attempts):
+        try:
+            with urllib.request.urlopen(request, timeout=10) as response:
+                return response.status, response.read().decode("utf-8", errors="replace")
+        except urllib.error.HTTPError as exc:
+            return exc.code, exc.read().decode("utf-8", errors="replace")
+        except (urllib.error.URLError, ConnectionResetError, http.client.RemoteDisconnected) as exc:
+            if attempt == attempts - 1:
+                raise RuntimeError(f"HTTP request failed for {url}: {exc}") from exc
+            time.sleep(0.5 * (attempt + 1))
+    raise RuntimeError(f"HTTP request failed for {url}")
 
 
 def choose_serial(explicit: str | None) -> str:

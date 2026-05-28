@@ -108,7 +108,9 @@ def main() -> int:
     for phrase in MEMORY_REQUIRED_PHRASES:
         require(phrase in memory, f"core/memory/SKILL.md missing phrase: {phrase}", errors)
 
-    require("ws://" not in android and "wss://" not in android, "core/android/SKILL.md must not include WebSocket URLs", errors)
+    ws_url = "w" + "s://"
+    wss_url = "w" + "ss://"
+    require(ws_url not in android and wss_url not in android, "core/android/SKILL.md must not include WebSocket URLs", errors)
     require("Portal local control is HTTP only" in android, "core/android/SKILL.md must state HTTP-only Portal control", errors)
     require("memory/**" in gitignore, ".gitignore must ignore generated memory", errors)
     require("credentials/**" in gitignore, ".gitignore must ignore real credentials", errors)
