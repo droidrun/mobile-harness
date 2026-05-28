@@ -5,7 +5,7 @@ description: Use when an Android screen asks for login, password, API key, OTP, 
 
 # Android Credentials
 
-Default behavior: stop and ask the user.
+Default behavior: stop and ask the user if credentials are not already explicitly authorized.
 
 ## Credential Screens
 
@@ -25,6 +25,7 @@ Ask one short question and wait. Offer concrete options:
 
 - user takes over on the device
 - user provides/authorizes a local credentials file
+- user enters credentials on the device
 - user approves skipping the login-gated task
 
 Do not ask the user to paste secrets into the chat unless they explicitly choose that path.

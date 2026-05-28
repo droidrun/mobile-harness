@@ -59,7 +59,7 @@ After a failed tap or input:
 
 1. Observe again.
 2. Check whether a permission dialog, login screen, or keyboard changed the target.
-3. Use UI-tree bounds if available.
+3. Use UI-tree bounds if available. If not, use screenshots carefully.
 4. Try one alternative action.
 5. If still stuck, stop and report the exact blocker.
 

@@ -5,7 +5,7 @@ description: Use before reading or writing mobile-harness-android local agent me
 
 # Android Mobile Memory
 
-`memory/` is an agent-owned local Markdown wiki. The agent writes operational facts that make future Android runs more reliable. The user does not need to maintain it manually.
+`memory/` is an agent-owned local Markdown wiki for Android devices. The agent writes non-sensitive operational facts or user preferences that make future Android runs more reliable. The user does not need to maintain it manually.
 
 ## Read
 
@@ -41,6 +41,7 @@ memory/
   index.md
   environment.md
   failures.md
+  user-preferences.md
   devices/<device-alias>.md
   apps/<package>.md
 ```

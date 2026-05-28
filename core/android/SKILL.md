@@ -19,7 +19,7 @@ Use this when operating an Android phone with ADB and/or public Mobilerun Portal
 Classify before acting:
 
 1. **Hybrid**: ADB works and Portal HTTP is reachable. Prefer Portal HTTP for state, screenshot, input, and app data; use ADB for setup and recovery.
-2. **ADB-only**: ADB works but Portal HTTP is unavailable. Use raw ADB. Offer Portal setup only if the user allows installation/config changes.
+2. **ADB-only**: ADB works but Portal HTTP is unavailable. Use raw ADB.
 3. **Portal HTTP-only**: ADB is unavailable but the user provided a reachable Portal HTTP URL and bearer token. Use HTTP only.
 4. **Blocked**: Neither ADB nor reachable authenticated Portal HTTP is available. Stop and ask the user to enable ADB or provide Portal HTTP access.
 
@@ -89,8 +89,6 @@ curl -sS -X POST -H "Authorization: Bearer $MOBILE_HARNESS_PORTAL_TOKEN" -H "Con
 
 ## ADB-Only Fallback
 
-ADB-only is degraded but useful:
-
 ```bash
 adb -s <serial> exec-out screencap -p > screenshot.png
 adb -s <serial> exec-out uiautomator dump /dev/tty
@@ -101,7 +99,7 @@ adb -s <serial> shell monkey -p <package> 1
 adb -s <serial> shell pm list packages
 ```
 
-Prefer UI-tree coordinates over guessed screenshot coordinates when possible.
+Prefer UI-tree coordinates over guessed screenshot coordinates when possible. If the UI tree is unavailable or unsuitable, use screenshots carefully.
 
 ## Observe-Act-Verify Loop
 

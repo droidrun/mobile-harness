@@ -2,7 +2,7 @@
 
 Portable Android operating instructions for AI agents that already have a way to use ADB and/or Mobilerun Portal.
 
-This repository is not an agent, runtime, MCP server, or phone-control binary. It is a small Markdown harness that tells agents how to classify Android control capabilities, use ADB and public Mobilerun Portal HTTP safely, load app cards on demand, handle credential screens, and maintain local operational memory.
+This repository is not an agent, runtime, MCP server, or phone-control binary. It is a small Markdown harness that tells agents how to classify Android control capabilities, use ADB and public Mobilerun Portal HTTP safely, load app cards on demand, handle credential screens, and maintain optional local operational memory.
 
 ## Scope
 
@@ -27,8 +27,8 @@ Do not load the whole repository into context.
 
 | ADB | Portal HTTP | Mode |
 | --- | --- | --- |
-| yes | yes | Hybrid: prefer Portal HTTP for state/input/screenshot, use ADB for setup and recovery. |
-| yes | no | ADB-only: use raw ADB and optionally install/enable Portal if the user allows it. |
+| yes | yes | Hybrid: prefer Portal HTTP for state/input/screenshot, use ADB for setup and recovery if needed. |
+| yes | no | ADB-only: use raw ADB. |
 | no | yes | Portal HTTP-only: use the user-provided Portal base URL and bearer token. |
 | no | no | Blocked: ask the user to enable ADB or provide reachable Portal HTTP access. |
 
@@ -41,4 +41,4 @@ An installed Portal APK alone is not enough when ADB is unavailable.
 
 ## Local State
 
-`memory/` and `credentials/` are local, ignored folders. The repository tracks only their rules/templates. Agents may write operational memory. Real credentials should never be committed.
+`memory/` and `credentials/` are local, ignored folders. The repository tracks only their rules/templates. Agents may write non-sensitive operational memory. Real credentials should never be committed.
