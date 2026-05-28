@@ -2,7 +2,7 @@
 
 Portable Android operating instructions for AI agents that already have a way to use ADB and/or Mobilerun Portal.
 
-This repository is a small Markdown harness that tells agents how to classify Android control capabilities, use ADB and public Mobilerun Portal HTTP safely, load app cards on demand, handle credential screens, and maintain local operational memory. *** Should we keep memory? Or the codex, open claw, claude etc. already have it and having one more memory layer actually makes it worse?
+This repository is a small Markdown harness that tells agents how to use ADB and Mobilerun Portal HTTP, load app cards on demand, handle credential screens, maintain local operational memory and generate app cards.
 
 ## Scope
 

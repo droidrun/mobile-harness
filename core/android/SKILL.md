@@ -106,9 +106,9 @@ or is not suitable for some reasons, use the screenshots.
 1. Observe current state before acting.
 2. Identify foreground package and activity.
 3. Load `apps/<package>/CARD.md` if present and not already loaded this turn.
-5. Act once.
-6. Observe again and verify the expected change.
-7. If the expected change did not happen, read `core/recovery/SKILL.md`.
+4. Act once.
+5. Observe again and verify the expected change.
+6. If the expected change did not happen, read `core/recovery/SKILL.md`.
 
 Do not chain many actions blindly.
 
