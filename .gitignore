@@ -13,3 +13,7 @@ credentials/**
 !credentials/TEMPLATE.md
 
 tmp/
+
+# Local QA helpers and experiments. The harness product is Markdown-only.
+scripts/
+tests/

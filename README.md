@@ -40,8 +40,6 @@ Install and enable Portal if ADB is not available: https://github.com/droidrun/m
 
 ## iOS Mode
 
-*** fully test ios if it is working
-
 iOS has one active capability mode:
 
 - `iOS Portal HTTP`: `MOBILE_HARNESS_IOS_PORTAL_URL` is reachable and `GET /device/date`, `GET /state`, and `GET /vision/screenshot` work.
