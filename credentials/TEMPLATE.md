@@ -1,4 +1,4 @@
-# com.example.app
+# com.example.app-or-bundle
 
 This is a template. Do not commit real credentials.
 

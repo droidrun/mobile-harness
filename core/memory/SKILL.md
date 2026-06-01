@@ -1,11 +1,11 @@
 ---
-name: android-mobile-memory
-description: Use before reading or writing mobile-harness-android local agent memory under memory/. Defines the LLM-owned Markdown wiki convention and safety limits.
+name: mobile-harness-memory
+description: Use before reading or writing mobile-harness local agent memory under memory/. Defines the LLM-owned Markdown wiki convention.
 ---
 
-# Android Mobile Memory
+# Mobile Harness Memory
 
-`memory/` is an agent-owned local Markdown wiki for the Android devices. The agent writes operational facts or user preferences which make future Android runs more reliable. The user does not need to maintain it manually.
+`memory/` is an agent-owned local Markdown wiki for mobile devices. The agent writes operational facts or user preferences which make future Android or iOS runs more reliable. The user does not need to maintain it manually.
 
 ## Read
 
@@ -23,12 +23,12 @@ Write memory near the end of a task when the fact is durable and useful:
 - Portal setup details that are not secrets
 - app UI quirks
 - prior failure and verified recovery
-- emulator/device environment notes
+- simulator/emulator/device environment notes
 
 Use this shape:
 
 ```markdown
-- 2026-05-28: Fact. Source: observed via <ADB|Portal HTTP|user>. Confidence: high|medium|low.
+- 2026-05-28: Fact. Source: observed via <ADB|Android Portal HTTP|iOS Portal HTTP|user>. Confidence: high|medium|low.
 ```
 
 Update `memory/index.md` when creating a new memory file.
@@ -42,7 +42,7 @@ memory/
   failures.md
   user-preferences.md
   devices/<device-alias>.md
-  apps/<package>.md
+  apps/<app-id>.md
 ```
 
 ## Never Store

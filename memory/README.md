@@ -11,7 +11,7 @@ memory/index.md
 memory/environment.md
 memory/failures.md
 memory/devices/<device-alias>.md
-memory/apps/<package>.md
+memory/apps/<app-id>.md
 ```
 
 Never store credentials, tokens, OTPs, payment data, private messages, contacts, or screenshots.

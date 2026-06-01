@@ -1,11 +1,11 @@
 ---
-name: android-mobile-credentials
-description: Use when an Android screen asks for login, password, API key, OTP, 2FA, recovery code, payment details, or other secrets while using mobile-harness-android.
+name: mobile-harness-credentials
+description: Use when a mobile screen asks for login, password, API key, OTP, 2FA, recovery code, passcode, payment details, or other secrets while using mobile-harness.
 ---
 
-# Android Credentials
+# Mobile Credentials
 
-Default behavior: stop and ask the user if the credintails are not set.
+Default behavior: stop and ask the user if the credentials are not set or explicitly authorized.
 
 ## Credential Screens
 
@@ -14,6 +14,7 @@ Treat these as credential or human-gated screens:
 - username, email, phone login
 - password
 - API key.
+- iOS passcode, Apple ID, or device unlock prompt
 - payment card, bank, billing, or purchase confirmation
 
 ## Ask Before Acting
@@ -27,10 +28,10 @@ Ask one short question and wait. Offer concrete options:
 
 ## Local Credential Files
 
-`credentials/` is local and ignored by git. If the user explicitly authorizes stored credentials, read only the file for the current package:
+`credentials/` is local and ignored by git. If the user explicitly authorizes stored credentials, read only the file for the current app id:
 
 ```text
-credentials/<package>.md
+credentials/<app-id>.md
 ```
 
 Example shape:
@@ -50,5 +51,5 @@ Use only the minimum required field. Redact values in logs and summaries.
 - Write credentials to `memory/`.
 - Commit credential files.
 - Print secrets back to the user.
-- Reuse credentials for a different app/package.
+- Reuse credentials for a different app id.
 - Submit payment, purchase, deletion, or account recovery without explicit approval for that exact action.

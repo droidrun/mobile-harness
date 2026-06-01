@@ -22,7 +22,7 @@ Classify before acting:
 3. **Portal HTTP-only**: ADB is unavailable but the user provided a reachable Portal HTTP URL and bearer token. Use HTTP only.
 4. **Blocked**: Neither ADB nor reachable authenticated Portal HTTP is available. Stop and ask the user to enable ADB or provide Portal HTTP access.
 
-If ADB works and `pm list packages com.mobilerun.portal` shows Portal installed, but `content://com.mobilerun.portal/version` fails or says provider not found, treat that as a Portal setup failure and read `core/recovery/SKILL.md`; do not silently downgrade to generic ADB-only mode.
+If ADB works and `pm list packages com.mobilerun.portal` shows Portal installed, but `content://com.mobilerun.portal/version` fails or says provider not found, treat that as a Portal setup failure and read `platforms/android/recovery/SKILL.md`; do not silently downgrade to generic ADB-only mode.
 
 An installed Portal app is not enough for Portal HTTP-only mode. The agent needs both:
 
@@ -105,10 +105,10 @@ or is not suitable for some reasons, use the screenshots.
 
 1. Observe current state before acting.
 2. Identify foreground package and activity.
-3. Load `apps/<package>/CARD.md` if present and not already loaded this turn.
+3. Load `apps/android/<package>/CARD.md` if present and not already loaded this turn.
 4. Act once.
 5. Observe again and verify the expected change.
-6. If the expected change did not happen, read `core/recovery/SKILL.md`.
+6. If the expected change did not happen, read `platforms/android/recovery/SKILL.md`.
 
 Do not chain many actions blindly.
 
@@ -121,7 +121,7 @@ If the screen asks for a username, password, API key, OTP, 2FA, payment detail, 
 App cards are not auto-loaded. When the foreground package is known:
 
 ```bash
-test -f apps/<package>/CARD.md && sed -n '1,220p' apps/<package>/CARD.md
+test -f apps/android/<package>/CARD.md && sed -n '1,220p' apps/android/<package>/CARD.md
 ```
 
 Read only the current package card. Do not scan every app card.

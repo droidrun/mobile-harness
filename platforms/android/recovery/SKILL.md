@@ -1,6 +1,6 @@
 ---
 name: android-mobile-recovery
-description: Use after Android ADB, Portal HTTP, state, screenshot, accessibility, input, or app-control failures while using mobile-harness-android.
+description: Use after Android ADB, Portal HTTP, state, screenshot, accessibility, input, or app-control failures while using mobile-harness.
 ---
 
 # Android Recovery
