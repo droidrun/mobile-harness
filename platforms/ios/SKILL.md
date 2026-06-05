@@ -1,6 +1,6 @@
 ---
 name: ios-mobile-harness
-description: Use for iOS device or Simulator control through ios-portal HTTP. Defines iOS Portal HTTP mode, observe-act-verify rules, and app-card loading.
+description: Use for iOS device or Simulator control through mobilerun-core over ios-portal HTTP. Defines iOS Portal HTTP mode, observe-act-verify rules, and app-card loading.
 ---
 
 # iOS Mobile Harness
@@ -10,14 +10,31 @@ Use this when operating an iPhone, iPad, or iOS Simulator through `ios-portal`.
 ## Scope
 
 - iOS only.
-- Control surface is `ios-portal` HTTP.
+- Primary API is `mobilerun_core.Mobilerun`.
+- Local backend is `ios-portal` HTTP.
 - No bearer token is required for the iOS.
+
+## Primary Control
+
+```python
+from mobilerun_core import Mobilerun
+
+m = Mobilerun()
+device = m.connect(backend="local-ios-http", url="http://127.0.0.1:6643")
+
+device.ui()
+device.screenshot()
+device.start_app("com.apple.Preferences")
+device.key("home")
+```
+
+Use `MOBILERUN_IOS_PORTAL_URL` to omit `url=`.
 
 ## Capability Classification
 
 Classify before acting:
 
-1. **iOS Portal HTTP**: `MOBILE_HARNESS_IOS_PORTAL_URL` is reachable and `GET /device/date`, `GET /state`, and `GET /vision/screenshot` work.
+1. **iOS Portal HTTP**: `MOBILERUN_IOS_PORTAL_URL` or `MOBILE_HARNESS_IOS_PORTAL_URL` is reachable and `GET /device/date`, `GET /state`, and `GET /vision/screenshot` work.
 2. **Blocked**: iOS Portal is not reachable. Stop and tell the user to start `ios-portal`.
 
 Use `http://127.0.0.1:6643` as the default local example.
@@ -43,7 +60,7 @@ curl -fsS http://127.0.0.1:6643/device/date
 
 ## iOS Portal HTTP Contract
 
-Use `MOBILE_HARNESS_IOS_PORTAL_URL` as the base URL.
+Use `MOBILERUN_IOS_PORTAL_URL` or `MOBILE_HARNESS_IOS_PORTAL_URL` as the base URL.
 
 Required probes:
 

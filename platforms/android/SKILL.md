@@ -1,6 +1,6 @@
 ---
 name: android-mobile-harness
-description: Use for Android phone control through ADB and Mobilerun Portal HTTP. Classifies ADB-only, Hybrid, Portal HTTP-only, and Blocked modes; defines observe-act-verify rules and app-card loading.
+description: Use for Android phone control through mobilerun-core over ADB+Portal or Portal HTTP-only. Classifies modes, defines observe-act-verify rules and app-card loading.
 ---
 
 # Android Mobile Harness
@@ -10,16 +10,46 @@ Use this when operating an Android phone with ADB and/or Mobilerun Portal.
 ## Scope
 
 - Android only.
+- Primary API is `mobilerun_core.Mobilerun`.
 - Public Portal only: `com.mobilerun.portal`.
-- Portal local control is HTTP only.
+- Raw ADB/curl is for setup checks, diagnostics, and recovery.
+
+## Primary Control
+
+```python
+from mobilerun_core import Mobilerun
+
+m = Mobilerun()
+
+# ADB + Portal local Android.
+device = m.connect("<adb-serial>", backend="local-android-adb")
+
+# Portal HTTP-only local Android.
+device = m.connect(
+    backend="local-android-http",
+    url="http://127.0.0.1:18080",
+    token="<portal-token>",
+)
+
+device.ui()
+device.screenshot()
+device.start_app("com.android.settings")
+```
+
+Check `device.capabilities` before optional lifecycle operations:
+
+```python
+if device.supports("stop_app"):
+    device.stop_app("com.android.settings")
+```
 
 ## Capability Classification
 
 Classify before acting:
 
-1. **Hybrid**: ADB works and Portal HTTP is reachable. Prefer Portal HTTP for state, screenshot, input, and app data; use ADB for setup and recovery.
-2. **ADB-only**: ADB works but Portal HTTP is unavailable. Use raw ADB.
-3. **Portal HTTP-only**: ADB is unavailable but the user provided a reachable Portal HTTP URL and bearer token. Use HTTP only.
+1. **Hybrid**: ADB works and Portal HTTP is reachable. Use `backend="local-android-adb"`.
+2. **ADB-only**: ADB works but Portal HTTP is unavailable. Use ADB only for recovery/setup; direct core control may have reduced sensing.
+3. **Portal HTTP-only**: ADB is unavailable but the user provided a reachable Portal HTTP URL and bearer token. Use `backend="local-android-http"`.
 4. **Blocked**: Neither ADB nor reachable authenticated Portal HTTP is available. Stop and ask the user to enable ADB or provide Portal HTTP access.
 
 If ADB works and `pm list packages com.mobilerun.portal` shows Portal installed, but `content://com.mobilerun.portal/version` fails or says provider not found, treat that as a Portal setup failure and read `platforms/android/recovery/SKILL.md`; do not silently downgrade to generic ADB-only mode.
@@ -28,6 +58,11 @@ An installed Portal app is not enough for Portal HTTP-only mode. The agent needs
 
 - `MOBILE_HARNESS_PORTAL_URL`, for example `http://127.0.0.1:18080`
 - `MOBILE_HARNESS_PORTAL_TOKEN`, sent as `Authorization: Bearer <token>`
+
+For `mobilerun-core`, pass those values as `url=` / `token=`, or expose:
+
+- `MOBILERUN_ANDROID_PORTAL_URL`
+- `MOBILERUN_ANDROID_PORTAL_TOKEN`
 
 ## ADB Checks
 
