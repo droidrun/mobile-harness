@@ -49,7 +49,7 @@ If `/ping` fails, the URL or network path is wrong. Ask the user for the correct
 
 If `/ping` works but `/version` returns `401`, ask the user for the current bearer token. Do not brute force, scrape, or invent tokens.
 
-If `/state` fails but `/version` works, Portal HTTP is authenticated but device permissions may be incomplete. Ask the user to enable Accessibility Service or provide ADB so it can be enabled.
+If `/state_full` fails but `/version` works, Portal HTTP is authenticated but device permissions may be incomplete. Ask the user to enable Accessibility Service or provide ADB so it can be enabled.
 
 ## Action Recovery
 

@@ -9,7 +9,7 @@ Use this only after a concrete iOS control failure.
 
 ## Classify The Failure
 
-- **No iOS Portal**: `MOBILE_HARNESS_IOS_PORTAL_URL` is missing or `/device/date` cannot be reached.
+- **No iOS Portal**: `MOBILERUN_IOS_PORTAL_URL` is missing or `/device/date` cannot be reached. `MOBILE_HARNESS_IOS_PORTAL_URL` is only a legacy fallback.
 - **Portal server exited**: requests start failing after earlier success, usually because the XCTest runner stopped.
 - **State extraction failure**: `/state` returns HTTP 200 but required state fields are missing or repeatedly empty while the UI is stable.
 - **Screenshot failure**: `/vision/screenshot` is non-PNG, zero bytes, or times out.

@@ -1,6 +1,6 @@
 ---
 name: ios-mobile-harness
-description: Use for iOS device or Simulator control through ios-portal HTTP. Defines iOS Portal HTTP mode, observe-act-verify rules, and app-card loading.
+description: Use for iOS device or Simulator control through mobilerun-core over ios-portal HTTP. Defines iOS Portal HTTP mode, observe-act-verify rules, and app-card loading.
 ---
 
 # iOS Mobile Harness
@@ -10,14 +10,31 @@ Use this when operating an iPhone, iPad, or iOS Simulator through `ios-portal`.
 ## Scope
 
 - iOS only.
-- Control surface is `ios-portal` HTTP.
+- Primary API is `mobilerun_core.Mobilerun`.
+- Local backend is `ios-portal` HTTP.
 - No bearer token is required for the iOS.
+
+## Primary Control
+
+```python
+from mobilerun_core import Mobilerun
+
+m = Mobilerun()
+device = m.connect(backend="local-ios-http", url="http://127.0.0.1:6643")
+
+device.ui()
+device.screenshot()
+device.start_app("com.apple.Preferences")
+device.key("home")
+```
+
+Use `MOBILERUN_IOS_PORTAL_URL` to omit `url=`.
 
 ## Capability Classification
 
 Classify before acting:
 
-1. **iOS Portal HTTP**: `MOBILE_HARNESS_IOS_PORTAL_URL` is reachable and `GET /device/date`, `GET /state`, and `GET /vision/screenshot` work.
+1. **iOS Portal HTTP**: `MOBILERUN_IOS_PORTAL_URL` or `MOBILE_HARNESS_IOS_PORTAL_URL` is reachable and `GET /device/date`, `GET /state`, and `GET /vision/screenshot` work.
 2. **Blocked**: iOS Portal is not reachable. Stop and tell the user to start `ios-portal`.
 
 Use `http://127.0.0.1:6643` as the default local example.
@@ -43,33 +60,37 @@ curl -fsS http://127.0.0.1:6643/device/date
 
 ## iOS Portal HTTP Contract
 
-Use `MOBILE_HARNESS_IOS_PORTAL_URL` as the base URL.
+Use `MOBILERUN_IOS_PORTAL_URL` as the base URL. `MOBILE_HARNESS_IOS_PORTAL_URL`
+is a legacy fallback.
 
 Required probes:
 
 ```bash
-curl -fsS "$MOBILE_HARNESS_IOS_PORTAL_URL/device/date"
-curl -fsS "$MOBILE_HARNESS_IOS_PORTAL_URL/state"
-curl -fsS "$MOBILE_HARNESS_IOS_PORTAL_URL/vision/screenshot" -o screenshot.png
+IOS_PORTAL_URL="${MOBILERUN_IOS_PORTAL_URL:-${MOBILE_HARNESS_IOS_PORTAL_URL:-http://127.0.0.1:6643}}"
+curl -fsS "$IOS_PORTAL_URL/device/date"
+curl -fsS "$IOS_PORTAL_URL/state"
+curl -fsS "$IOS_PORTAL_URL/vision/screenshot" -o screenshot.png
 ```
 
 Common actions:
 
 ```bash
-curl -fsS -X POST -H "Content-Type: application/json" \
-  -d '{"bundleIdentifier":"com.apple.Preferences"}' "$MOBILE_HARNESS_IOS_PORTAL_URL/inputs/launch"
+IOS_PORTAL_URL="${MOBILERUN_IOS_PORTAL_URL:-${MOBILE_HARNESS_IOS_PORTAL_URL:-http://127.0.0.1:6643}}"
 
 curl -fsS -X POST -H "Content-Type: application/json" \
-  -d '{"rect":"{{100,200},{1,1}}","count":1,"longPress":false}' "$MOBILE_HARNESS_IOS_PORTAL_URL/gestures/tap"
+  -d '{"bundleIdentifier":"com.apple.Preferences"}' "$IOS_PORTAL_URL/inputs/launch"
 
 curl -fsS -X POST -H "Content-Type: application/json" \
-  -d '{"x":200,"y":700,"dir":"up"}' "$MOBILE_HARNESS_IOS_PORTAL_URL/gestures/swipe"
+  -d '{"rect":"{{100,200},{1,1}}","count":1,"longPress":false}' "$IOS_PORTAL_URL/gestures/tap"
 
 curl -fsS -X POST -H "Content-Type: application/json" \
-  -d '{"rect":"{{100,200},{1,1}}","text":"hello"}' "$MOBILE_HARNESS_IOS_PORTAL_URL/inputs/type"
+  -d '{"x1":200,"y1":700,"x2":200,"y2":250,"durationMs":500}' "$IOS_PORTAL_URL/gestures/swipe"
 
 curl -fsS -X POST -H "Content-Type: application/json" \
-  -d '{"key":1}' "$MOBILE_HARNESS_IOS_PORTAL_URL/inputs/key"
+  -d '{"text":"hello","clear":false}' "$IOS_PORTAL_URL/inputs/type"
+
+curl -fsS -X POST -H "Content-Type: application/json" \
+  -d '{"key":1}' "$IOS_PORTAL_URL/inputs/key"
 ```
 
 ## Observe-Act-Verify Loop
