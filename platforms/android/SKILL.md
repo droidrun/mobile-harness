@@ -97,7 +97,7 @@ Examples:
 ```bash
 curl -sS "$MOBILE_HARNESS_PORTAL_URL/ping"
 curl -sS -H "Authorization: Bearer $MOBILE_HARNESS_PORTAL_TOKEN" "$MOBILE_HARNESS_PORTAL_URL/version"
-curl -sS -H "Authorization: Bearer $MOBILE_HARNESS_PORTAL_TOKEN" "$MOBILE_HARNESS_PORTAL_URL/state"
+curl -sS -H "Authorization: Bearer $MOBILE_HARNESS_PORTAL_TOKEN" "$MOBILE_HARNESS_PORTAL_URL/state_full"
 curl -sS -H "Authorization: Bearer $MOBILE_HARNESS_PORTAL_TOKEN" "$MOBILE_HARNESS_PORTAL_URL/screenshot" -o screenshot.png
 ```
 
@@ -105,20 +105,20 @@ Common POST actions:
 
 ```bash
 curl -sS -X POST -H "Authorization: Bearer $MOBILE_HARNESS_PORTAL_TOKEN" -H "Content-Type: application/json" \
-  -d '{"x":540,"y":1200}' "$MOBILE_HARNESS_PORTAL_URL/action/tap"
+  -d '{"x":540,"y":1200}' "$MOBILE_HARNESS_PORTAL_URL/tap"
 
 curl -sS -X POST -H "Authorization: Bearer $MOBILE_HARNESS_PORTAL_TOKEN" -H "Content-Type: application/json" \
-  -d '{"startX":540,"startY":1800,"endX":540,"endY":600,"duration":400}' "$MOBILE_HARNESS_PORTAL_URL/action/swipe"
+  -d '{"startX":540,"startY":1800,"endX":540,"endY":600,"duration":400}' "$MOBILE_HARNESS_PORTAL_URL/swipe"
 
 curl -sS -X POST -H "Authorization: Bearer $MOBILE_HARNESS_PORTAL_TOKEN" -H "Content-Type: application/json" \
-  -d '{"package":"com.android.settings"}' "$MOBILE_HARNESS_PORTAL_URL/action/app"
+  -d '{"package":"com.android.settings"}' "$MOBILE_HARNESS_PORTAL_URL/app"
 ```
 
 For text input through Portal, send base64 text:
 
 ```bash
 curl -sS -X POST -H "Authorization: Bearer $MOBILE_HARNESS_PORTAL_TOKEN" -H "Content-Type: application/json" \
-  -d '{"base64_text":"aGVsbG8=","clear":true}' "$MOBILE_HARNESS_PORTAL_URL/action/keyboard/input"
+  -d '{"base64_text":"aGVsbG8=","clear":true}' "$MOBILE_HARNESS_PORTAL_URL/keyboard/input"
 ```
 
 ## ADB-Only Fallback

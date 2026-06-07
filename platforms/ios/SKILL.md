@@ -87,7 +87,7 @@ curl -fsS -X POST -H "Content-Type: application/json" \
   -d '{"x1":200,"y1":700,"x2":200,"y2":250,"durationMs":500}' "$IOS_PORTAL_URL/gestures/swipe"
 
 curl -fsS -X POST -H "Content-Type: application/json" \
-  -d '{"rect":"{{100,200},{1,1}}","text":"hello"}' "$IOS_PORTAL_URL/inputs/type"
+  -d '{"text":"hello","clear":false}' "$IOS_PORTAL_URL/inputs/type"
 
 curl -fsS -X POST -H "Content-Type: application/json" \
   -d '{"key":1}' "$IOS_PORTAL_URL/inputs/key"
