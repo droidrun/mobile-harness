@@ -57,7 +57,10 @@ Android Portal HTTP-only means the agent already has both:
 - a base URL such as `http://127.0.0.1:18080`
 - a bearer token for `Authorization: Bearer <token>`
 
-Install and enable Portal if ADB is not available: https://github.com/droidrun/mobilerun-portal
+Without ADB, the harness cannot install, enable, port-forward, or fetch a token
+for Portal. Ask the user for an already-running Portal HTTP endpoint and bearer
+token, or ask them to provision Portal outside the agent session:
+https://github.com/droidrun/mobilerun-portal
 
 ## iOS Mode
 
