@@ -52,8 +52,8 @@ device.screenshot()
 device.start_app("com.android.settings")
 ```
 
-After connecting, agent inspects `device.capabilities` and use `device.supports(...)`
-before optional operations.
+After connecting, agents should inspect `device.capabilities` and use
+`device.supports(...)` before optional operations.
 
 ## Cloud Mode
 
@@ -102,7 +102,7 @@ Android Portal HTTP-only means the agent already has both:
 - a bearer token for `Authorization: Bearer <token>`
 
 Without ADB, the harness cannot install, enable, port-forward, or fetch a token
-for Portal. 
+for Portal.
 Android Mobilerun Portal: https://github.com/droidrun/mobilerun-portal
 
 ## Local iOS Mode
