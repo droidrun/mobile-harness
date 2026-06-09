@@ -15,7 +15,8 @@ python -m venv .venv
 .venv/bin/python -c "from mobilerun_core import Mobilerun"
 ```
 
-Use any compatible Python interpreter to create the venv. If the default
+Use Python 3.11, 3.12, or 3.13 to create the venv. `mobilerun-core` and
+`mobilerun-core-cli` currently require Python `>=3.11,<3.14`. If the default
 `python` is not compatible, use another compatible interpreter, but do not
 commit `.venv/`.
 
