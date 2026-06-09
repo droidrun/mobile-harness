@@ -9,7 +9,20 @@ Markdown harness with an agent runtime. For day-to-day device work, start with
 Install the full `mobilerun-core` surface:
 
 ```bash
-python -m pip install "mobilerun-core[local]"
+cd /path/to/mobile-harness
+python -m venv .venv
+.venv/bin/python -m pip install "mobilerun-core[local]"
+.venv/bin/python -c "from mobilerun_core import Mobilerun"
+```
+
+Use any compatible Python interpreter to create the venv. If the default
+`python` is not compatible, use another compatible interpreter, but do not
+commit `.venv/`.
+
+Tell agents which Python runtime to use:
+
+```text
+Use /path/to/mobile-harness/.venv/bin/python for mobile-harness.
 ```
 
 Base `mobilerun-core` includes cloud support through `mobilerun-sdk`. The

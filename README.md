@@ -24,7 +24,18 @@ Read `install.md` and follow the steps to install `mobile-harness`.
 Install the full public control API:
 
 ```bash
-python -m pip install "mobilerun-core[local]"
+cd /path/to/mobile-harness
+python -m venv .venv
+.venv/bin/python -m pip install "mobilerun-core[local]"
+.venv/bin/python -c "from mobilerun_core import Mobilerun"
+```
+
+Use any compatible Python interpreter to create the venv. 
+
+Tell agents which Python runtime to use:
+
+```text
+Use /path/to/mobile-harness/.venv/bin/python for mobile-harness.
 ```
 
 Base `mobilerun-core` includes cloud support through `mobilerun-sdk`. The
