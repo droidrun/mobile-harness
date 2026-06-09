@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
 .DS_Store
+.venv/
 
 # Local agent-owned state. Keep schemas/templates, ignore real content.
 memory/**
