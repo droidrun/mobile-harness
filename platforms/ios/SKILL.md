@@ -35,7 +35,7 @@ Use `MOBILERUN_IOS_PORTAL_URL` to omit `url=`.
 
 Classify before acting:
 
-1. **iOS Portal HTTP**: `MOBILERUN_IOS_PORTAL_URL` or `MOBILE_HARNESS_IOS_PORTAL_URL` is reachable and `GET /device/date`, `GET /state`, and `GET /vision/screenshot` work.
+1. **iOS Portal HTTP**: `MOBILERUN_IOS_PORTAL_URL` is reachable and `GET /device/date`, `GET /state`, and `GET /vision/screenshot` work.
 2. **Blocked**: iOS Portal is not reachable. Stop and tell the user to start `ios-portal`.
 
 Use `http://127.0.0.1:6643` as the default local example.
@@ -76,13 +76,13 @@ curl -fsS http://127.0.0.1:6643/device/date
 
 ## iOS Portal HTTP Contract
 
-Use `MOBILERUN_IOS_PORTAL_URL` as the base URL. `MOBILE_HARNESS_IOS_PORTAL_URL`
-is a legacy fallback. Raw curl is for health checks and diagnostics only.
+Use `MOBILERUN_IOS_PORTAL_URL` as the base URL. Raw curl is for health checks
+and diagnostics only.
 
 Required probes:
 
 ```bash
-IOS_PORTAL_URL="${MOBILERUN_IOS_PORTAL_URL:-${MOBILE_HARNESS_IOS_PORTAL_URL:-http://127.0.0.1:6643}}"
+IOS_PORTAL_URL="${MOBILERUN_IOS_PORTAL_URL:-http://127.0.0.1:6643}"
 curl -fsS "$IOS_PORTAL_URL/device/date"
 curl -fsS "$IOS_PORTAL_URL/state"
 curl -fsS "$IOS_PORTAL_URL/vision/screenshot" -o screenshot.png
