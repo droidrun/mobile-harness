@@ -86,8 +86,7 @@ Keep the repository at that path so relative references such as
 
 ### OpenClaw
 
-This repository is a Python `mobilerun-core` harness, separate from the
-existing curl-first OpenClaw Mobilerun skill. If packaging it for OpenClaw,
+This repository is a Python `mobilerun-core` harness. If packaging it for OpenClaw,
 package the repository as a skill directory with the root `SKILL.md` as the
 entrypoint and make the whole directory available to the agent.
 
