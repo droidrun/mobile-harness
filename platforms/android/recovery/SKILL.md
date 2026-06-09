@@ -63,4 +63,4 @@ After a failed tap or input:
 
 ## Credential Or Human-Gated Screens
 
-If the blocker is login, API key, payment, account recovery, or consent for destructive action, read `core/credentials/SKILL.md` and ask the user.
+If the blocker is login, API key, payment, account recovery, or consent for destructive action, read the credentials skill under `core/credentials` and ask the user.

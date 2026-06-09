@@ -12,6 +12,7 @@ Use this when operating an Android phone with ADB and/or Mobilerun Portal.
 - Android only.
 - Primary API is `mobilerun_core.Mobilerun`.
 - Public Portal only: `com.mobilerun.portal`.
+- Local Android backends require `mobilerun-core` installed with the `local` extra, or `mobilerun-core-cli` installed alongside it.
 - Raw ADB/curl is for setup checks, diagnostics, and recovery.
 
 ## Primary Control
@@ -90,9 +91,9 @@ Default device port is `8080`.
 
 - `GET /ping` does not require auth and should return `pong`.
 - Every other endpoint requires `Authorization: Bearer <token>`.
-- Verify the token with `GET /version` before performing actions.
+- Verify the token with `GET /version` before connecting through `mobilerun-core`.
 
-Examples:
+Diagnostic probes:
 
 ```bash
 curl -sS "$MOBILE_HARNESS_PORTAL_URL/ping"
@@ -101,25 +102,8 @@ curl -sS -H "Authorization: Bearer $MOBILE_HARNESS_PORTAL_TOKEN" "$MOBILE_HARNES
 curl -sS -H "Authorization: Bearer $MOBILE_HARNESS_PORTAL_TOKEN" "$MOBILE_HARNESS_PORTAL_URL/screenshot" -o screenshot.png
 ```
 
-Common POST actions:
-
-```bash
-curl -sS -X POST -H "Authorization: Bearer $MOBILE_HARNESS_PORTAL_TOKEN" -H "Content-Type: application/json" \
-  -d '{"x":540,"y":1200}' "$MOBILE_HARNESS_PORTAL_URL/tap"
-
-curl -sS -X POST -H "Authorization: Bearer $MOBILE_HARNESS_PORTAL_TOKEN" -H "Content-Type: application/json" \
-  -d '{"startX":540,"startY":1800,"endX":540,"endY":600,"duration":400}' "$MOBILE_HARNESS_PORTAL_URL/swipe"
-
-curl -sS -X POST -H "Authorization: Bearer $MOBILE_HARNESS_PORTAL_TOKEN" -H "Content-Type: application/json" \
-  -d '{"package":"com.android.settings"}' "$MOBILE_HARNESS_PORTAL_URL/app"
-```
-
-For text input through Portal, send base64 text:
-
-```bash
-curl -sS -X POST -H "Authorization: Bearer $MOBILE_HARNESS_PORTAL_TOKEN" -H "Content-Type: application/json" \
-  -d '{"base64_text":"aGVsbG8=","clear":true}' "$MOBILE_HARNESS_PORTAL_URL/keyboard/input"
-```
+Do not use raw Portal HTTP for normal actions. For tap, swipe, type, launch,
+screenshot, and UI tree reads, connect with `Mobilerun` and call `device.*`.
 
 ## ADB-Only Fallback
 
@@ -133,7 +117,7 @@ adb -s <serial> shell monkey -p <package> 1
 adb -s <serial> shell pm list packages
 ```
 
-Prefer UI-tree coordinates over guessed screenshot coordinates when possible. But if UI tree is not available 
+Prefer UI-tree coordinates over guessed screenshot coordinates when possible. But if UI tree is not available
 or is not suitable for some reasons, use the screenshots.
 
 ## Observe-Act-Verify Loop
@@ -149,7 +133,7 @@ Do not chain many actions blindly.
 
 ## Credential Gate
 
-If the screen asks for a username, password, API key, OTP, 2FA, payment detail, recovery code, or other secret, stop. Read `core/credentials/SKILL.md` and ask the user how to proceed before entering or reading secrets.
+If the screen asks for a username, password, API key, OTP, 2FA, payment detail, recovery code, or other secret, stop. Read the credentials skill under `core/credentials` and ask the user how to proceed before entering or reading secrets.
 
 ## App Cards
 
