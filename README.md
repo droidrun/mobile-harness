@@ -44,7 +44,8 @@ device.screenshot()
 device.start_app("com.android.settings")
 ```
 
-Use `device.capabilities` or `device.supports("stop_app")` before optional lifecycle verbs.
+After connecting, inspect `device.capabilities` and use `device.supports(...)`
+before optional operations.
 
 ## Cloud Mode
 
