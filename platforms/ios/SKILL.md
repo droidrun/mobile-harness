@@ -1,18 +1,21 @@
 ---
 name: ios-mobile-harness
-description: Use for iOS device or Simulator control through mobilerun-core over ios-portal HTTP. Defines iOS Portal HTTP mode, observe-act-verify rules, and app-card loading.
+description: Use for iOS device or Simulator control through mobilerun-core over cloud or ios-portal HTTP. Defines cloud and iOS Portal HTTP modes, observe-act-verify rules, and app-card loading.
 ---
 
 # iOS Mobile Harness
 
-Use this when operating an iPhone, iPad, or iOS Simulator through `ios-portal`.
+Use this when operating an iPhone, iPad, or iOS Simulator through Mobilerun
+Cloud or `ios-portal`.
 
 ## Scope
 
 - iOS only.
 - Primary API is `mobilerun_core.Mobilerun`.
+- Cloud iOS uses `backend="cloud"`.
 - Local backend is `ios-portal` HTTP.
-- No bearer token is required for the iOS.
+- Local iOS requires `mobilerun-core` installed with the `local` extra, or `mobilerun-core-cli` installed alongside it.
+- No bearer token is required for local iOS Portal.
 
 ## Primary Control
 
@@ -20,6 +23,11 @@ Use this when operating an iPhone, iPad, or iOS Simulator through `ios-portal`.
 from mobilerun_core import Mobilerun
 
 m = Mobilerun()
+
+# Cloud iOS.
+device = m.connect("<cloud-device-id>", backend="cloud")
+
+# Local iOS Portal.
 device = m.connect(backend="local-ios-http", url="http://127.0.0.1:6643")
 
 device.ui()
@@ -30,14 +38,20 @@ device.key("home")
 
 Use `MOBILERUN_IOS_PORTAL_URL` to omit `url=`.
 
+After connecting, inspect `device.capabilities` and use `device.supports(...)`
+before optional operations.
+
 ## Capability Classification
 
 Classify before acting:
 
-1. **iOS Portal HTTP**: `MOBILERUN_IOS_PORTAL_URL` or `MOBILE_HARNESS_IOS_PORTAL_URL` is reachable and `GET /device/date`, `GET /state`, and `GET /vision/screenshot` work.
-2. **Blocked**: iOS Portal is not reachable. Stop and tell the user to start `ios-portal`.
+1. **Cloud**: the user provided a Mobilerun Cloud device id. Use `backend="cloud"`.
+2. **iOS Portal HTTP**: `MOBILERUN_IOS_PORTAL_URL` is reachable and `GET /device/date`, `GET /state`, and `GET /vision/screenshot` work.
+3. **Blocked**: no cloud device id or reachable iOS Portal is available. Stop and ask the user to provide a cloud device or start `ios-portal`.
 
 Use `http://127.0.0.1:6643` as the default local example.
+For cloud devices, skip local iOS Portal setup checks and recovery unless the
+user also provided a local iOS target.
 
 ## Setup Checks
 
@@ -51,62 +65,76 @@ curl -fsS http://127.0.0.1:6643/device/date
 
 For a physical device:
 
+Option A, script:
+
 ```bash
 cd /path/to/ios-portal
 ./device.sh <device-udid>
-iproxy -u <device-udid> 6643 6643
+```
+
+Option B, Xcode:
+
+1. Open `droidrun-ios-portal.xcodeproj`.
+2. Select the physical iPhone or iPad as the run destination.
+3. Check Signing & Capabilities for the app and UI-test targets.
+4. Run Product > Test.
+
+For either physical-device option, keep the XCTest session running. In another
+terminal, forward the device port:
+
+```bash
+iproxy -u <device-udid> -s 127.0.0.1 6643:6643
 curl -fsS http://127.0.0.1:6643/device/date
 ```
 
 ## iOS Portal HTTP Contract
 
-Use `MOBILERUN_IOS_PORTAL_URL` as the base URL. `MOBILE_HARNESS_IOS_PORTAL_URL`
-is a legacy fallback.
+Use `MOBILERUN_IOS_PORTAL_URL` as the base URL. Raw curl is for health checks
+and diagnostics only.
 
 Required probes:
 
 ```bash
-IOS_PORTAL_URL="${MOBILERUN_IOS_PORTAL_URL:-${MOBILE_HARNESS_IOS_PORTAL_URL:-http://127.0.0.1:6643}}"
+IOS_PORTAL_URL="${MOBILERUN_IOS_PORTAL_URL:-http://127.0.0.1:6643}"
 curl -fsS "$IOS_PORTAL_URL/device/date"
 curl -fsS "$IOS_PORTAL_URL/state"
 curl -fsS "$IOS_PORTAL_URL/vision/screenshot" -o screenshot.png
 ```
 
-Common actions:
+Normal actions go through `Mobilerun`:
 
-```bash
-IOS_PORTAL_URL="${MOBILERUN_IOS_PORTAL_URL:-${MOBILE_HARNESS_IOS_PORTAL_URL:-http://127.0.0.1:6643}}"
+```python
+import os
 
-curl -fsS -X POST -H "Content-Type: application/json" \
-  -d '{"bundleIdentifier":"com.apple.Preferences"}' "$IOS_PORTAL_URL/inputs/launch"
+from mobilerun_core import Mobilerun
 
-curl -fsS -X POST -H "Content-Type: application/json" \
-  -d '{"rect":"{{100,200},{1,1}}","count":1,"longPress":false}' "$IOS_PORTAL_URL/gestures/tap"
-
-curl -fsS -X POST -H "Content-Type: application/json" \
-  -d '{"x1":200,"y1":700,"x2":200,"y2":250,"durationMs":500}' "$IOS_PORTAL_URL/gestures/swipe"
-
-curl -fsS -X POST -H "Content-Type: application/json" \
-  -d '{"text":"hello","clear":false}' "$IOS_PORTAL_URL/inputs/type"
-
-curl -fsS -X POST -H "Content-Type: application/json" \
-  -d '{"key":1}' "$IOS_PORTAL_URL/inputs/key"
+url = os.environ.get("MOBILERUN_IOS_PORTAL_URL", "http://127.0.0.1:6643")
+m = Mobilerun()
+device = m.connect(backend="local-ios-http", url=url)
+device.start_app("com.apple.Preferences")
+device.tap(100, 200)
+device.swipe(200, 700, 200, 250, 500)
+device.type("hello")
+device.key("home")
 ```
 
 ## Observe-Act-Verify Loop
 
-1. Observe with `/state` before acting.
+1. Observe with `device.ui()` before acting.
 2. Identify foreground bundle id/current app when available.
 3. Load `apps/ios/<bundle-id>/CARD.md` if present and not already loaded this turn.
-4. Act once through iOS Portal.
-5. Observe again with `/state` and/or `/vision/screenshot`.
+4. Act once through `Mobilerun`.
+5. Observe again with `device.ui()` and/or `device.screenshot()`.
 6. If the expected change did not happen, read `platforms/ios/recovery/SKILL.md`.
 
 Do not chain many actions blindly.
 
 ## Credential Gate
 
-If the screen asks for Apple ID, username, password, OTP, 2FA, passcode, payment detail, recovery code stop. Read `core/credentials/SKILL.md` and ask the user how to proceed before entering or reading secrets if the credentials are absent.
+If the screen asks for Apple ID, username, password, OTP, 2FA, passcode,
+payment detail, or recovery code, stop. Read the credentials skill under
+`core/credentials` and ask the user how to proceed before entering or reading
+secrets if the credentials are absent.
 
 ## App Cards
 

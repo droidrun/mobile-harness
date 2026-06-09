@@ -14,7 +14,7 @@ Use this card only when Safari is the foreground app or the task explicitly targ
 
 - Use the address/search field for navigation when possible.
 - After navigation, wait for load and verify page title or stable visible content.
-- Prefer `/state` accessibility data for controls and `/vision/screenshot` for page verification.
+- Prefer `device.ui()` accessibility data for controls and `device.screenshot()` for page verification.
 
 ## Traps
 

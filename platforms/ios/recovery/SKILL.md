@@ -9,7 +9,7 @@ Use this only after a concrete iOS control failure.
 
 ## Classify The Failure
 
-- **No iOS Portal**: `MOBILERUN_IOS_PORTAL_URL` is missing or `/device/date` cannot be reached. `MOBILE_HARNESS_IOS_PORTAL_URL` is only a legacy fallback.
+- **No iOS Portal**: `MOBILERUN_IOS_PORTAL_URL` is missing or `/device/date` cannot be reached.
 - **Portal server exited**: requests start failing after earlier success, usually because the XCTest runner stopped.
 - **State extraction failure**: `/state` returns HTTP 200 but required state fields are missing or repeatedly empty while the UI is stable.
 - **Screenshot failure**: `/vision/screenshot` is non-PNG, zero bytes, or times out.
@@ -50,4 +50,4 @@ After a failed tap, swipe, type, launch, or key:
 
 ## Credential Or Human-Gated Screens
 
-If the blocker is Apple ID, login, passcode, OTP, API key, payment, account recovery, captcha, or consent for destructive action, read `core/credentials/SKILL.md` and ask the user if the credentials are not present.
+If the blocker is Apple ID, login, passcode, OTP, API key, payment, account recovery, captcha, or consent for destructive action, read the credentials skill under `core/credentials` and ask the user if the credentials are not present.
