@@ -6,6 +6,16 @@ This repository is a small Markdown harness. The primary control path is the Pyt
 
 For dependency and runtime setup, read `install.md`.
 
+## Agent Setup Prompt
+
+Copy paste it into your agent:
+
+```text
+Set up https://github.com/droidrun/mobile-harness for me.
+
+Read `install.md` and follow the steps to install `mobile-harness`.
+```
+
 ## Scope
 
 - Android through `mobilerun-core` using local ADB+Portal, Portal HTTP-only, or cloud.
