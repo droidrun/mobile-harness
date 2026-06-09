@@ -1,19 +1,21 @@
 ---
 name: ios-mobile-harness
-description: Use for iOS device or Simulator control through mobilerun-core over ios-portal HTTP. Defines iOS Portal HTTP mode, observe-act-verify rules, and app-card loading.
+description: Use for iOS device or Simulator control through mobilerun-core over cloud or ios-portal HTTP. Defines cloud and iOS Portal HTTP modes, observe-act-verify rules, and app-card loading.
 ---
 
 # iOS Mobile Harness
 
-Use this when operating an iPhone, iPad, or iOS Simulator through `ios-portal`.
+Use this when operating an iPhone, iPad, or iOS Simulator through Mobilerun
+Cloud or `ios-portal`.
 
 ## Scope
 
 - iOS only.
 - Primary API is `mobilerun_core.Mobilerun`.
+- Cloud iOS uses `backend="cloud"`.
 - Local backend is `ios-portal` HTTP.
 - Local iOS requires `mobilerun-core` installed with the `local` extra, or `mobilerun-core-cli` installed alongside it.
-- No bearer token is required for the iOS.
+- No bearer token is required for local iOS Portal.
 
 ## Primary Control
 
@@ -21,6 +23,11 @@ Use this when operating an iPhone, iPad, or iOS Simulator through `ios-portal`.
 from mobilerun_core import Mobilerun
 
 m = Mobilerun()
+
+# Cloud iOS.
+device = m.connect("<cloud-device-id>", backend="cloud")
+
+# Local iOS Portal.
 device = m.connect(backend="local-ios-http", url="http://127.0.0.1:6643")
 
 device.ui()
@@ -31,14 +38,20 @@ device.key("home")
 
 Use `MOBILERUN_IOS_PORTAL_URL` to omit `url=`.
 
+After connecting, inspect `device.capabilities` and use `device.supports(...)`
+before optional operations.
+
 ## Capability Classification
 
 Classify before acting:
 
-1. **iOS Portal HTTP**: `MOBILERUN_IOS_PORTAL_URL` is reachable and `GET /device/date`, `GET /state`, and `GET /vision/screenshot` work.
-2. **Blocked**: iOS Portal is not reachable. Stop and tell the user to start `ios-portal`.
+1. **Cloud**: the user provided a Mobilerun Cloud device id. Use `backend="cloud"`.
+2. **iOS Portal HTTP**: `MOBILERUN_IOS_PORTAL_URL` is reachable and `GET /device/date`, `GET /state`, and `GET /vision/screenshot` work.
+3. **Blocked**: no cloud device id or reachable iOS Portal is available. Stop and ask the user to provide a cloud device or start `ios-portal`.
 
 Use `http://127.0.0.1:6643` as the default local example.
+For cloud devices, skip local iOS Portal setup checks and recovery unless the
+user also provided a local iOS target.
 
 ## Setup Checks
 
@@ -118,7 +131,10 @@ Do not chain many actions blindly.
 
 ## Credential Gate
 
-If the screen asks for Apple ID, username, password, OTP, 2FA, passcode, payment detail, recovery code stop. Read the credentials skill under `core/credentials` and ask the user how to proceed before entering or reading secrets if the credentials are absent.
+If the screen asks for Apple ID, username, password, OTP, 2FA, passcode,
+payment detail, or recovery code, stop. Read the credentials skill under
+`core/credentials` and ask the user how to proceed before entering or reading
+secrets if the credentials are absent.
 
 ## App Cards
 
