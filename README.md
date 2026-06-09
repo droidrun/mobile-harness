@@ -1,10 +1,8 @@
 # mobile-harness
 
-Portable mobile operating instructions for AI agents that control Android and/or iOS devices through `mobilerun-core`.
+Portable mobile operating instructions for AI agents that control Android and/or iOS devices. Local and in cloud.
 
-This repository is a small Markdown harness. The primary control path is the Python `mobilerun_core` API; Android ADB, Android Mobilerun Portal HTTP, and iOS Portal HTTP are backend details or recovery/debugging paths.
-
-For dependency and runtime setup, read `install.md`.
+The repository is a small Markdown harness. The primary control path is the Python `mobilerun_core` and optional client apps.
 
 ## Agent Setup Prompt
 
@@ -21,7 +19,7 @@ Read `install.md` and follow the steps to install `mobile-harness`.
 - Android through `mobilerun-core` using local ADB+Portal, Portal HTTP-only, or cloud.
 - iOS through `mobilerun-core` using `ios-portal` HTTP or cloud.
 
-## Install
+## Manual Install
 
 Install the full public control API:
 
@@ -54,7 +52,7 @@ device.screenshot()
 device.start_app("com.android.settings")
 ```
 
-After connecting, inspect `device.capabilities` and use `device.supports(...)`
+After connecting, agent inspects `device.capabilities` and use `device.supports(...)`
 before optional operations.
 
 ## Cloud Mode
@@ -76,10 +74,6 @@ device.screenshot()
 device.start_app("com.android.settings")
 ```
 
-Do not print, log, or store cloud API keys. If a runtime exposes a Mobilerun key
-under another name, map it into `MOBILERUN_CLOUD_API_KEY` before running
-`mobilerun-core` code.
-
 ## Loading Model
 
 Skill-based runtimes can load `SKILL.md`; all runtimes should start with
@@ -92,7 +86,6 @@ Skill-based runtimes can load `SKILL.md`; all runtimes should start with
 - `core/memory/SKILL.md` only when reading or writing local agent-owned memory.
 - `apps/android/<package>/CARD.md` or `apps/ios/<bundle-id>/CARD.md` only for the foreground app.
 
-Do not load the whole repository into context.
 
 ## Local Android Modes
 
