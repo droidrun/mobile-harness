@@ -49,7 +49,8 @@ Classify before acting:
 2. **iOS Portal HTTP**: `MOBILERUN_IOS_PORTAL_URL` is reachable and `GET /device/date`, `GET /state`, and `GET /vision/screenshot` work.
 3. **Blocked**: no cloud device id or reachable iOS Portal is available. Stop and ask the user to provide a cloud device or start `ios-portal`.
 
-Cloud requires `MOBILERUN_CLOUD_API_KEY` and `MOBILERUN_API_BASE_URL`. Use
+Cloud requires `MOBILERUN_CLOUD_API_KEY`, `MOBILERUN_API_BASE_URL`, and
+`MOBILERUN_CLOUD_DEVICE_ID`. Use
 `MOBILERUN_API_BASE_URL=https://api.mobilerun.ai/v1` unless the user provides a
 different endpoint.
 
