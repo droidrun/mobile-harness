@@ -49,6 +49,7 @@ Cloud devices require:
 ```bash
 export MOBILERUN_CLOUD_API_KEY="..."
 export MOBILERUN_API_BASE_URL="https://api.mobilerun.ai/v1"
+export MOBILERUN_CLOUD_DEVICE_ID="..."
 ```
 
 Local Android Portal HTTP-only requires:

@@ -60,6 +60,11 @@ Classify before acting:
 4. **Portal HTTP-only**: ADB is unavailable but the user provided a reachable Portal HTTP URL and bearer token. Use `backend="local-android-http"`.
 5. **Blocked**: no cloud device id, ADB, or reachable authenticated Portal HTTP is available. Stop and ask the user to provide a cloud device, enable ADB, or provide Portal HTTP access.
 
+Cloud requires `MOBILERUN_CLOUD_API_KEY`, `MOBILERUN_API_BASE_URL`, and
+`MOBILERUN_CLOUD_DEVICE_ID`. Use
+`MOBILERUN_API_BASE_URL=https://api.mobilerun.ai/v1` unless the user provides a
+different endpoint.
+
 For cloud devices, do not run ADB checks, Android Portal HTTP probes, or local
 Portal recovery unless the user also provided a local Android target.
 

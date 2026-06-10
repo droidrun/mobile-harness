@@ -37,6 +37,6 @@ Use Android when the task mentions Android, ADB, Mobilerun Portal, `ANDROID_SERI
 
 Use iOS when the task mentions iOS, iPhone, iPad, Simulator, Xcode, XCTest, bundle identifiers, or `ios-portal`.
 
-Use cloud mode when the task mentions Mobilerun Cloud, a cloud device id, hosted devices, a cloud, `MOBILERUN_CLOUD_API_KEY`, or `MOBILERUN_API_BASE_URL`.
+Use cloud mode when the task mentions Mobilerun Cloud, a cloud device id, hosted devices, a cloud, `MOBILERUN_CLOUD_API_KEY`, `MOBILERUN_API_BASE_URL`, or `MOBILERUN_CLOUD_DEVICE_ID`.
 
 If the platform is ambiguous and multiple Android, iOS, or cloud targets are available, ask one short question before acting.
