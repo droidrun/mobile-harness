@@ -19,4 +19,4 @@ Use this card only when iOS Settings is the foreground app or the task explicitl
 ## Traps
 
 - Some settings changes are destructive, privacy-sensitive, or require passcode confirmation. Ask before reset, account removal, VPN, profiles, accessibility, or permission changes unless the user explicitly requested that exact action.
-- If Settings asks for passcode, Apple ID, password, biometric confirmation, payment, or recovery, stop and read `core/credentials/SKILL.md`.
+- If Settings asks for passcode, Apple ID, password, biometric confirmation, payment, or recovery, stop and read `core/credentials/GUIDE.md`.

@@ -97,7 +97,7 @@ Add an import to `~/.claude/CLAUDE.md` that points at this repository's
 ```
 
 Keep the repository at that path so relative references such as
-`platforms/android/SKILL.md` remain readable.
+`platforms/android/GUIDE.md` remain readable.
 
 ### OpenClaw
 

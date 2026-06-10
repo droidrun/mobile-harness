@@ -130,14 +130,14 @@ device.key("home")
 3. Load `apps/ios/<bundle-id>/CARD.md` if present and not already loaded this turn.
 4. Act once through `Mobilerun`.
 5. Observe again with `device.ui()` and/or `device.screenshot()`.
-6. If the expected change did not happen, read `platforms/ios/recovery/SKILL.md`.
+6. If the expected change did not happen, read `platforms/ios/recovery/GUIDE.md`.
 
 Do not chain many actions blindly.
 
 ## Credential Gate
 
 If the screen asks for Apple ID, username, password, OTP, 2FA, passcode,
-payment detail, or recovery code, stop. Read the credentials skill under
+payment detail, or recovery code, stop. Read the credentials guide under
 `core/credentials` and ask the user how to proceed before entering or reading
 secrets if the credentials are absent.
 
@@ -153,4 +153,4 @@ Read only the current bundle card. Do not scan every app card.
 
 ## Memory
 
-Read or write `memory/` only when operational facts would help future runs. Read `core/memory/SKILL.md` first.
+Read or write `memory/` only when operational facts would help future runs. Read `core/memory/GUIDE.md` first.

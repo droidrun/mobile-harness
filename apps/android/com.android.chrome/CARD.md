@@ -19,5 +19,5 @@ Use this card only when Chrome is the foreground package or the task explicitly 
 ## Traps
 
 - Cookie banners, sign-in prompts, and permission dialogs commonly block pages.
-- If a site asks for login, password, payment, or OTP, stop and read `core/credentials/SKILL.md`.
+- If a site asks for login, password, payment, or OTP, stop and read `core/credentials/GUIDE.md`.
 - Do not save page content to memory unless it is an operational UI fact.

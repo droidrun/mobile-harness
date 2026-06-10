@@ -68,7 +68,7 @@ different endpoint.
 For cloud devices, do not run ADB checks, Android Portal HTTP probes, or local
 Portal recovery unless the user also provided a local Android target.
 
-If ADB works and `pm list packages com.mobilerun.portal` shows Portal installed, but `content://com.mobilerun.portal/version` fails or says provider not found, treat that as a Portal setup failure and read `platforms/android/recovery/SKILL.md`; do not silently downgrade to generic ADB-only mode.
+If ADB works and `pm list packages com.mobilerun.portal` shows Portal installed, but `content://com.mobilerun.portal/version` fails or says provider not found, treat that as a Portal setup failure and read `platforms/android/recovery/GUIDE.md`; do not silently downgrade to generic ADB-only mode.
 
 An installed Portal app is not enough for Portal HTTP-only mode. The agent needs both:
 
@@ -140,13 +140,13 @@ or is not suitable for some reasons, use the screenshots.
 3. Load `apps/android/<package>/CARD.md` if present and not already loaded this turn.
 4. Act once.
 5. Observe again and verify the expected change.
-6. If the expected change did not happen, read `platforms/android/recovery/SKILL.md`.
+6. If the expected change did not happen, read `platforms/android/recovery/GUIDE.md`.
 
 Do not chain many actions blindly.
 
 ## Credential Gate
 
-If the screen asks for a username, password, API key, OTP, 2FA, payment detail, recovery code, or other secret, stop. Read the credentials skill under `core/credentials` and ask the user how to proceed before entering or reading secrets.
+If the screen asks for a username, password, API key, OTP, 2FA, payment detail, recovery code, or other secret, stop. Read the credentials guide under `core/credentials` and ask the user how to proceed before entering or reading secrets.
 
 ## App Cards
 
@@ -160,4 +160,4 @@ Read only the current package card. Do not scan every app card.
 
 ## Memory
 
-Read or write `memory/` only when operational facts would help future runs. Read `core/memory/SKILL.md` first. Never store secrets or private screen content.
+Read or write `memory/` only when operational facts would help future runs. Read `core/memory/GUIDE.md` first. Never store secrets or private screen content.

@@ -15,7 +15,7 @@ Use this card only when Gmail is the foreground package or the task explicitly t
 
 - Prefer structured state labels over coordinate taps.
 - After launching, wait for inbox or account picker before acting.
-- If Gmail asks to add an account, sign in, or verify identity, stop and read `core/credentials/SKILL.md`.
+- If Gmail asks to add an account, sign in, or verify identity, stop and read `core/credentials/GUIDE.md`.
 
 ## Traps
 

@@ -2,7 +2,7 @@
 
 This folder is for agent-written operational memory. Runtime memory files are ignored by git.
 
-Read `core/memory/SKILL.md` before reading or writing here.
+Read `core/memory/GUIDE.md` before reading or writing here.
 
 Suggested files:
 
