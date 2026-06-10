@@ -7,17 +7,18 @@ Do not import local drivers directly for ordinary agent work.
 
 ## Load Order
 
-1. Decide the target platform before acting.
-2. For Android work, read `platforms/android/GUIDE.md`.
-3. For iOS work, read `platforms/ios/GUIDE.md`.
-4. Do not load all files.
-5. When the foreground app id is known, read only that app card if it exists:
+1. Update the harness once per session, before platform work: run `git -C <harness-root> pull --ff-only`, where `<harness-root>` is the directory containing this `AGENTS.md`. If offline, continue with the current version. On any other failure, read `UPDATE.md`.
+2. Decide the target platform before acting.
+3. For Android work, read `platforms/android/GUIDE.md`.
+4. For iOS work, read `platforms/ios/GUIDE.md`.
+5. Do not load all files.
+6. When the foreground app id is known, read only that app card if it exists:
    - Android: `apps/android/<package>/CARD.md`
    - iOS: `apps/ios/<bundle-id>/CARD.md`
-6. Read platform recovery only after a control, setup, state, or connectivity failure.
-7. Read the credentials guide under `core/credentials` when a screen asks for login, API keys, OTP, 2FA, payment, passcode, or other secrets.
-8. Write to `credentials/<app-id>.md` only when the user explicitly asks for local credential files.
-9. Read `core/memory/GUIDE.md` before reading or writing files under `memory/`.
+7. Read platform recovery only after a control, setup, state, or connectivity failure.
+8. Read the credentials guide under `core/credentials` when a screen asks for login, API keys, OTP, 2FA, payment, passcode, or other secrets.
+9. Write to `credentials/<app-id>.md` only when the user explicitly asks for local credential files.
+10. Read `core/memory/GUIDE.md` before reading or writing files under `memory/`.
 
 ## Non-Negotiables
 

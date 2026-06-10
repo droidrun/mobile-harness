@@ -96,6 +96,7 @@ Skill-based runtimes can load `SKILL.md`; all runtimes should start with
 - the credentials guide under `core/credentials` only when a credential or human-gated screen appears.
 - `core/memory/GUIDE.md` only when reading or writing local agent-owned memory.
 - `apps/android/<package>/CARD.md` or `apps/ios/<bundle-id>/CARD.md` only for the foreground app.
+- `UPDATE.md` only when the session-start `git pull --ff-only` fails.
 
 
 ## Local Android Modes
