@@ -90,11 +90,11 @@ device.start_app("com.android.settings")
 Skill-based runtimes can load `SKILL.md`; all runtimes should start with
 `AGENTS.md`. It routes agents to the smallest needed file:
 
-- `platforms/android/SKILL.md` for Android work.
-- `platforms/ios/SKILL.md` for iOS work.
-- `platforms/<platform>/recovery/SKILL.md` only when control fails.
-- the credentials skill under `core/credentials` only when a credential or human-gated screen appears.
-- `core/memory/SKILL.md` only when reading or writing local agent-owned memory.
+- `platforms/android/GUIDE.md` for Android work.
+- `platforms/ios/GUIDE.md` for iOS work.
+- `platforms/<platform>/recovery/GUIDE.md` only when control fails.
+- the credentials guide under `core/credentials` only when a credential or human-gated screen appears.
+- `core/memory/GUIDE.md` only when reading or writing local agent-owned memory.
 - `apps/android/<package>/CARD.md` or `apps/ios/<bundle-id>/CARD.md` only for the foreground app.
 
 
@@ -127,4 +127,4 @@ The default local iOS Portal example is `http://127.0.0.1:6643`.
 
 ## Local State
 
-`memory/` and `credentials/` are local, ignored folders. The repository tracks only their rules/templates. Agents may write operational memory after reading `core/memory/SKILL.md`.
+`memory/` and `credentials/` are local, ignored folders. The repository tracks only their rules/templates. Agents may write operational memory after reading `core/memory/GUIDE.md`.

@@ -19,5 +19,5 @@ Use this card only when Safari is the foreground app or the task explicitly targ
 ## Traps
 
 - Cookie banners, first-run prompts, sign-in pages, and permission dialogs can block navigation.
-- If a site asks for login, password, payment, OTP, or Apple ID, stop and read `core/credentials/SKILL.md`.
+- If a site asks for login, password, payment, OTP, or Apple ID, stop and read `core/credentials/GUIDE.md`.
 - Do not store page content in memory unless it is an operational UI fact.

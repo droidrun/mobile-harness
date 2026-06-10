@@ -2,7 +2,7 @@
 
 This folder is for optional user-provided credential notes. Runtime credential files are ignored by git.
 
-Read `core/credentials/SKILL.md` before using anything here.
+Read `core/credentials/GUIDE.md` before using anything here.
 
 Rules:
 

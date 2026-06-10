@@ -28,9 +28,9 @@ local backends.
 ## Load Order
 
 1. Read `AGENTS.md`.
-2. Read `platforms/android/SKILL.md` for Android work.
-3. Read `platforms/ios/SKILL.md` for iOS work.
+2. Read `platforms/android/GUIDE.md` for Android work.
+3. Read `platforms/ios/GUIDE.md` for iOS work.
 4. Read recovery, credentials, memory, and app-card files only when routed
-   there by `AGENTS.md` or the platform skill.
+   there by `AGENTS.md` or the platform guide.
 
 For setup and runtime registration, read `install.md`.

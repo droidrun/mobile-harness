@@ -20,4 +20,4 @@ Use this card only when Android Settings is the foreground package or the task e
 ## Traps
 
 - Some settings changes are destructive or privacy-sensitive. Ask before reset, uninstall, clear data, account removal, VPN, accessibility, or permission changes unless the user explicitly requested that exact action.
-- If Settings asks for PIN/password/biometric confirmation, stop and read `core/credentials/SKILL.md`.
+- If Settings asks for PIN/password/biometric confirmation, stop and read `core/credentials/GUIDE.md`.
