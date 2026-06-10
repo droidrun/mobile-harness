@@ -114,3 +114,9 @@ python -m pip install "mobilerun-core[local]"
 Provide the same environment variables listed above. If the host already
 provides `MOBILERUN_API_KEY`, set `MOBILERUN_CLOUD_API_KEY` to that value for
 `mobilerun-core`.
+
+## Updating
+
+Installed clones keep themselves current: `AGENTS.md` instructs agents to run
+`git pull --ff-only` against the repository once per session before platform
+work. Repair steps for clones the soft pull refuses are in `UPDATE.md`.
