@@ -57,12 +57,21 @@ behind. Upgrade them in the same once-per-session pass, right after the git
 pull:
 
 ```bash
-<harness-root>/.venv/bin/python -m pip install -U "mobilerun-core[local]"
+<harness-root>/.venv/bin/python -m pip install -U "mobilerun-core[local]" mobilerun-core-cli mobilerun-sdk
 <harness-root>/.venv/bin/python -c "from mobilerun_core import Mobilerun"
 ```
 
-The `-U` upgrades `mobilerun-core` and its `local`-extra dependencies to the
-newest compatible releases. Handle the result like the soft update:
+`mobilerun-core-cli` and `mobilerun-sdk` are listed explicitly on purpose.
+`mobilerun-core` depends on them with loose `>=` constraints, and `pip`'s
+default `--upgrade-strategy only-if-needed` upgrades a dependency only when the
+package being upgraded requires a newer version. Without naming them, a clone
+whose `mobilerun-core` is already current would keep stale `mobilerun-core-cli`
+/ `mobilerun-sdk` even when newer compatible releases exist — exactly the drift
+this step is meant to prevent. (`-U "mobilerun-core[local]" mobilerun-core-cli
+mobilerun-sdk` upgrades the three control libraries to the newest compatible
+releases while leaving unrelated transitive deps alone; `--upgrade-strategy
+eager` is the broader alternative but also churns those transitive deps.)
+Handle the result like the soft update:
 
 - Upgraded or already current: continue.
 - Offline or network failure: continue with the installed version. Do not

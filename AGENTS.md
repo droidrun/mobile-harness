@@ -9,7 +9,7 @@ Do not import local drivers directly for ordinary agent work.
 
 1. Update once per session, before platform work, where `<harness-root>` is the directory containing this `AGENTS.md`:
    - Pull the harness: `git -C <harness-root> pull --ff-only`.
-   - Upgrade the control libraries: `<harness-root>/.venv/bin/python -m pip install -U "mobilerun-core[local]"`. These are versioned separately from the harness, so the clone can be current while the libraries are stale — upgrade them in the same pass.
+   - Upgrade the control libraries: `<harness-root>/.venv/bin/python -m pip install -U "mobilerun-core[local]" mobilerun-core-cli mobilerun-sdk`. These are versioned separately from the harness, so the clone can be current while the libraries are stale — upgrade them in the same pass. (Listing `mobilerun-core-cli`/`mobilerun-sdk` explicitly is required: `pip`'s default `--upgrade-strategy only-if-needed` would otherwise leave them stale whenever the installed `mobilerun-core` already satisfies its `>=` constraint.)
    If offline, continue with the current version. On any other failure (or to pin/skip the library upgrade), read `UPDATE.md`.
 2. Decide the target platform before acting.
 3. For Android work, read `platforms/android/GUIDE.md`.
