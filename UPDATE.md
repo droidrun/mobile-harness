@@ -47,10 +47,37 @@ Rules:
 - Do not repair a development checkout. If the user says the clone is where
   they edit the harness itself, stop and let them resolve it.
 
+## Update Python Dependencies
+
+The git pull only refreshes this Markdown harness. The control libraries
+(`mobilerun-core`, and the `local` extra's `mobilerun-core-cli` /
+`mobilerun-sdk`) live in `.venv/` and are versioned separately on PyPI — a
+clone can be on the latest harness commit while its libraries are months
+behind. Upgrade them in the same once-per-session pass, right after the git
+pull:
+
+```bash
+<harness-root>/.venv/bin/python -m pip install -U "mobilerun-core[local]"
+<harness-root>/.venv/bin/python -c "from mobilerun_core import Mobilerun"
+```
+
+The `-U` upgrades `mobilerun-core` and its `local`-extra dependencies to the
+newest compatible releases. Handle the result like the soft update:
+
+- Upgraded or already current: continue.
+- Offline or network failure: continue with the installed version. Do not
+  retry in a loop and do not report it as an error.
+- Major-version bumps (e.g. `0.x` → `1.x`) can change behavior. If something
+  that worked before now fails, note the installed version when reporting.
+
+Skip the upgrade only when the user has pinned a specific library version or
+says the clone is a development checkout they manage themselves.
+
 ## After Updating
 
 - Files read earlier in this session may be stale. Re-read a guide before
   relying on it.
 - If the update changed `AGENTS.md`, re-read it before continuing.
-- If `from mobilerun_core import Mobilerun` fails after an update, read
-  `install.md` and reinstall `mobilerun-core[local]` into `.venv/`.
+- If `from mobilerun_core import Mobilerun` still fails after the dependency
+  upgrade above, read `install.md` and reinstall `mobilerun-core[local]` into
+  `.venv/`.
