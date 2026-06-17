@@ -57,9 +57,8 @@ The git pull only refreshes the Markdown harness; the control libraries in
 <harness-root>/.venv/bin/python -c "from mobilerun_core import Mobilerun"
 ```
 
-List `mobilerun-core-cli`/`mobilerun-sdk` explicitly — pip's default
-`only-if-needed` strategy would otherwise leave them stale. If offline,
-continue with the current version; skip the upgrade if a version is pinned.
+If offline, continue with the current version; skip the upgrade if a version
+is pinned.
 
 ## After Updating
 
