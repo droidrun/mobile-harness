@@ -47,10 +47,24 @@ Rules:
 - Do not repair a development checkout. If the user says the clone is where
   they edit the harness itself, stop and let them resolve it.
 
+## Update Python Dependencies
+
+The git pull only refreshes the Markdown harness; the control libraries in
+`.venv/` are versioned separately on PyPI. Upgrade them in the same pass:
+
+```bash
+<harness-root>/.venv/bin/python -m pip install -U "mobilerun-core[local]" mobilerun-core-cli mobilerun-sdk
+<harness-root>/.venv/bin/python -c "from mobilerun_core import Mobilerun"
+```
+
+If offline, continue with the current version; skip the upgrade if a version
+is pinned.
+
 ## After Updating
 
 - Files read earlier in this session may be stale. Re-read a guide before
   relying on it.
 - If the update changed `AGENTS.md`, re-read it before continuing.
-- If `from mobilerun_core import Mobilerun` fails after an update, read
-  `install.md` and reinstall `mobilerun-core[local]` into `.venv/`.
+- If `from mobilerun_core import Mobilerun` still fails after the dependency
+  upgrade above, read `install.md` and reinstall `mobilerun-core[local]` into
+  `.venv/`.
