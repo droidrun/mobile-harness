@@ -49,38 +49,17 @@ Rules:
 
 ## Update Python Dependencies
 
-The git pull only refreshes this Markdown harness. The control libraries
-(`mobilerun-core`, and the `local` extra's `mobilerun-core-cli` /
-`mobilerun-sdk`) live in `.venv/` and are versioned separately on PyPI — a
-clone can be on the latest harness commit while its libraries are months
-behind. Upgrade them in the same once-per-session pass, right after the git
-pull:
+The git pull only refreshes the Markdown harness; the control libraries in
+`.venv/` are versioned separately on PyPI. Upgrade them in the same pass:
 
 ```bash
 <harness-root>/.venv/bin/python -m pip install -U "mobilerun-core[local]" mobilerun-core-cli mobilerun-sdk
 <harness-root>/.venv/bin/python -c "from mobilerun_core import Mobilerun"
 ```
 
-`mobilerun-core-cli` and `mobilerun-sdk` are listed explicitly on purpose.
-`mobilerun-core` depends on them with loose `>=` constraints, and `pip`'s
-default `--upgrade-strategy only-if-needed` upgrades a dependency only when the
-package being upgraded requires a newer version. Without naming them, a clone
-whose `mobilerun-core` is already current would keep stale `mobilerun-core-cli`
-/ `mobilerun-sdk` even when newer compatible releases exist — exactly the drift
-this step is meant to prevent. (`-U "mobilerun-core[local]" mobilerun-core-cli
-mobilerun-sdk` upgrades the three control libraries to the newest compatible
-releases while leaving unrelated transitive deps alone; `--upgrade-strategy
-eager` is the broader alternative but also churns those transitive deps.)
-Handle the result like the soft update:
-
-- Upgraded or already current: continue.
-- Offline or network failure: continue with the installed version. Do not
-  retry in a loop and do not report it as an error.
-- Major-version bumps (e.g. `0.x` → `1.x`) can change behavior. If something
-  that worked before now fails, note the installed version when reporting.
-
-Skip the upgrade only when the user has pinned a specific library version or
-says the clone is a development checkout they manage themselves.
+List `mobilerun-core-cli`/`mobilerun-sdk` explicitly — pip's default
+`only-if-needed` strategy would otherwise leave them stale. If offline,
+continue with the current version; skip the upgrade if a version is pinned.
 
 ## After Updating
 
