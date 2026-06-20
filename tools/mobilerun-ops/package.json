@@ -1,0 +1,17 @@
+{
+  "name": "mobile-harness-mobilerun-ops",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Optional Mobilerun Cloud ops helper for mobile-harness agents.",
+  "scripts": {
+    "check": "node --check droidrun_mobilerun_ops.mjs",
+    "help": "node droidrun_mobilerun_ops.mjs --help"
+  },
+  "dependencies": {
+    "@mobilerun/sdk": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
