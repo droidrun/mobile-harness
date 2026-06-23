@@ -19,9 +19,9 @@ Normal device control always uses:
 from mobilerun_core import Mobilerun
 ```
 
-Use `Mobilerun()` to connect to cloud devices, local Android ADB+Portal, local
-Android Portal HTTP-only, or local iOS Portal HTTP. Do not import or call
-`mobilerun_core_cli` directly for normal agent work. `mobilerun-core-cli` is the
+Use `Mobilerun()` to connect to cloud devices, local Android ADB with optional
+Portal, local Android Portal HTTP-only, or local iOS Portal HTTP. Do not import
+or call `mobilerun_core_cli` directly for normal agent work. `mobilerun-core-cli` is the
 local-driver dependency used internally by `mobilerun-core` for Android and iOS
 local backends.
 
