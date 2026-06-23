@@ -30,7 +30,7 @@ Base `mobilerun-core` includes cloud support through `mobilerun-sdk`. The
 `local` extra installs `mobilerun-core-cli>=0.2.0`, which `mobilerun-core` uses
 internally for:
 
-- local Android ADB+Portal: `backend="local-android-adb"`
+- local Android ADB with optional Portal: `backend="local-android-adb"`
 - local Android Portal HTTP-only: `backend="local-android-http"`
 - local iOS Portal HTTP: `backend="local-ios-http"`
 

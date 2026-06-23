@@ -16,7 +16,7 @@ Read `install.md` and follow the steps to install `mobile-harness`.
 
 ## Scope
 
-- Android through `mobilerun-core` using local ADB+Portal, Portal HTTP-only, or cloud.
+- Android through `mobilerun-core` using local ADB with optional Portal, Portal HTTP-only, or cloud.
 - iOS through `mobilerun-core` using `ios-portal` HTTP or cloud.
 
 ## Manual Install
@@ -103,8 +103,8 @@ Skill-based runtimes can load `SKILL.md`; all runtimes should start with
 
 | ADB | Android Portal HTTP | Mode |
 | --- | --- | --- |
-| yes | yes | `backend="local-android-adb"`: core uses ADB+Portal; raw ADB is recovery. |
-| yes | no | `backend="local-android-adb"` may still work for ADB-native input/screenshot recovery only. |
+| yes | yes | `backend="local-android-adb"`: core uses ADB and automatically uses Portal features when available. |
+| yes | no | `backend="local-android-adb"`: core uses ADB-native control, UI, text input, screenshots, and app lifecycle. |
 | no | yes | `backend="local-android-http"` with the user-provided Portal base URL and bearer token. |
 | no | no | Blocked: ask the user to enable ADB or provide reachable Portal HTTP access. |
 

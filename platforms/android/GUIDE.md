@@ -1,6 +1,6 @@
 ---
 name: android-mobile-harness
-description: Use for Android phone control through mobilerun-core over cloud, ADB+Portal, or Portal HTTP-only. Classifies modes, defines observe-act-verify rules and app-card loading.
+description: Use for Android phone control through mobilerun-core over cloud, ADB with optional Portal, or Portal HTTP-only. Classifies modes, defines observe-act-verify rules and app-card loading.
 ---
 
 # Android Mobile Harness
@@ -15,7 +15,7 @@ Mobilerun Portal.
 - Cloud Android uses `backend="cloud"`.
 - Local public Portal only: `com.mobilerun.portal`.
 - Local Android backends require `mobilerun-core` installed with the `local` extra, or `mobilerun-core-cli` installed alongside it.
-- Raw ADB/curl is for setup checks, diagnostics, and recovery.
+- Direct raw ADB/curl is for setup checks, diagnostics, and recovery; normal control still goes through `mobilerun_core`.
 
 ## Primary Control
 
@@ -27,7 +27,7 @@ m = Mobilerun()
 # Cloud Android.
 device = m.connect("<cloud-device-id>", backend="cloud")
 
-# ADB + Portal local Android.
+# ADB-first local Android; Portal is used automatically when available.
 device = m.connect("<adb-serial>", backend="local-android-adb")
 
 # Portal HTTP-only local Android.
@@ -55,8 +55,8 @@ if device.supports("stop_app"):
 Classify before acting:
 
 1. **Cloud**: the user provided a Mobilerun Cloud device id. Use `backend="cloud"`.
-2. **Hybrid**: ADB works and Portal HTTP is reachable. Use `backend="local-android-adb"`.
-3. **ADB-only**: ADB works but Portal HTTP is unavailable. Use ADB only for recovery/setup; direct core control may have reduced sensing.
+2. **ADB + Portal**: ADB works and Portal is reachable. Use `backend="local-android-adb"`; core will use Portal-enhanced features automatically.
+3. **ADB-only**: ADB works but Portal is unavailable. Use `backend="local-android-adb"`; core still supports ADB-native UI, text input, screenshots, and app lifecycle.
 4. **Portal HTTP-only**: ADB is unavailable but the user provided a reachable Portal HTTP URL and bearer token. Use `backend="local-android-http"`.
 5. **Blocked**: no cloud device id, ADB, or reachable authenticated Portal HTTP is available. Stop and ask the user to provide a cloud device, enable ADB, or provide Portal HTTP access.
 
@@ -68,7 +68,7 @@ different endpoint.
 For cloud devices, do not run ADB checks, Android Portal HTTP probes, or local
 Portal recovery unless the user also provided a local Android target.
 
-If ADB works and `pm list packages com.mobilerun.portal` shows Portal installed, but `content://com.mobilerun.portal/version` fails or says provider not found, treat that as a Portal setup failure and read `platforms/android/recovery/GUIDE.md`; do not silently downgrade to generic ADB-only mode.
+If ADB works and `pm list packages com.mobilerun.portal` shows Portal installed, but `content://com.mobilerun.portal/version` fails or says provider not found, `mobilerun_core` can continue through ADB-first control. Treat the Portal issue as setup debt and read `platforms/android/recovery/GUIDE.md` only when Portal-specific features are required.
 
 An installed Portal app is not enough for Portal HTTP-only mode. The agent needs both:
 
