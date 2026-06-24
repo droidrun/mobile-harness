@@ -14,7 +14,7 @@ Mobilerun Portal.
 - Primary API is `mobilerun_core.Mobilerun`.
 - Cloud Android uses `backend="cloud"`.
 - Local public Portal only: `com.mobilerun.portal`.
-- Local Android backends require `mobilerun-core` installed with the `local` extra, or `mobilerun-core-cli` installed alongside it.
+- Local Android backends require `mobilerun-core` installed with the `local` extra, or `mobilerun-core-local` installed alongside it.
 - Direct raw ADB/curl is for setup checks, diagnostics, and recovery; normal control still goes through `mobilerun_core`.
 
 ## Primary Control

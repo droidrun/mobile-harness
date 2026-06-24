@@ -14,7 +14,7 @@ Cloud or `ios-portal`.
 - Primary API is `mobilerun_core.Mobilerun`.
 - Cloud iOS uses `backend="cloud"`.
 - Local backend is `ios-portal` HTTP.
-- Local iOS requires `mobilerun-core` installed with the `local` extra, or `mobilerun-core-cli` installed alongside it.
+- Local iOS requires `mobilerun-core` installed with the `local` extra, or `mobilerun-core-local` installed alongside it.
 - No bearer token is required for local iOS Portal.
 
 ## Primary Control

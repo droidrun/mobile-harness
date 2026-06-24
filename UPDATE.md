@@ -53,7 +53,7 @@ The git pull only refreshes the Markdown harness; the control libraries in
 `.venv/` are versioned separately on PyPI. Upgrade them in the same pass:
 
 ```bash
-<harness-root>/.venv/bin/python -m pip install -U "mobilerun-core[local]" mobilerun-core-cli mobilerun-sdk
+<harness-root>/.venv/bin/python -m pip install -U "mobilerun-core[local]" mobilerun-core-local mobilerun-sdk
 <harness-root>/.venv/bin/python -c "from mobilerun_core import Mobilerun"
 ```
 

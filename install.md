@@ -16,7 +16,7 @@ python -m venv .venv
 ```
 
 Use Python 3.11, 3.12, or 3.13 to create the venv. `mobilerun-core` and
-`mobilerun-core-cli` currently require Python `>=3.11,<3.14`. If the default
+`mobilerun-core-local` currently require Python `>=3.11,<3.14`. If the default
 `python` is not compatible, use another compatible interpreter, but do not
 commit `.venv/`.
 
@@ -27,7 +27,7 @@ Use /path/to/mobile-harness/.venv/bin/python for mobile-harness.
 ```
 
 Base `mobilerun-core` includes cloud support through `mobilerun-sdk`. The
-`local` extra installs `mobilerun-core-cli>=0.2.0`, which `mobilerun-core` uses
+`local` extra installs `mobilerun-core-local`, which `mobilerun-core` uses
 internally for:
 
 - local Android ADB with optional Portal: `backend="local-android-adb"`
@@ -40,7 +40,7 @@ Agents should still import only `mobilerun_core`:
 from mobilerun_core import Mobilerun
 ```
 
-Do not teach agents to use `mobilerun_core_cli` directly for normal control.
+Do not teach agents to use `mobilerun_core_local` directly for normal control.
 
 ## Environment
 

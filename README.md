@@ -39,7 +39,7 @@ Use /path/to/mobile-harness/.venv/bin/python for mobile-harness.
 ```
 
 Base `mobilerun-core` includes cloud support through `mobilerun-sdk`. The
-`local` extra installs `mobilerun-core-cli>=0.2.0`, which `mobilerun-core` uses
+`local` extra installs `mobilerun-core-local`, which `mobilerun-core` uses
 internally for local Android and iOS backends. Agents should still import only
 `mobilerun_core`.
 
