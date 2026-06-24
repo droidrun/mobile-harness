@@ -27,7 +27,7 @@ Install the full public control API:
 cd /path/to/mobile-harness
 python -m venv .venv
 .venv/bin/python -m pip install "mobilerun-core[local]"
-.venv/bin/python -c "from importlib.metadata import version; from mobilerun_core import Mobilerun; print(version('mobilerun-core'))"
+.venv/bin/python -c "from mobilerun_core import Mobilerun"
 ```
 
 Use Python 3.11, 3.12, or 3.13 to create the venv.
@@ -82,17 +82,6 @@ Use these helpers through the `device` returned by `Mobilerun.connect(...)`:
   local Android ADB and local iOS Portal HTTP.
 - `device.list_apps()` excludes system apps by default. Pass
   `include_system_apps=True` when a full inventory is needed and supported.
-
-For runtime version checks, prefer package metadata:
-
-```python
-from importlib.metadata import version
-
-print(version("mobilerun-core"))
-```
-
-Do not rely on module `__version__` constants when checking installed package
-versions.
 
 ## Cloud Mode
 
