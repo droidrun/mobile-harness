@@ -18,3 +18,7 @@ tmp/
 # Local QA helpers and experiments. The harness product is Markdown-only.
 scripts/
 tests/
+
+# Optional Mobilerun ops helper local outputs and installs.
+tools/mobilerun-ops/node_modules/
+tools/mobilerun-ops/evidence/

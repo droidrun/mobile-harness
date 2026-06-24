@@ -102,6 +102,21 @@ device.screenshot()
 device.start_app("com.android.settings")
 ```
 
+## Optional Mobilerun Ops Helper
+
+This repository keeps `mobilerun_core.Mobilerun` as the primary control path. An optional Node 20 helper lives in `tools/mobilerun-ops/` for bounded Mobilerun Cloud account and device checks when an operator already has a cloud API key.
+
+```bash
+cd tools/mobilerun-ops
+npm install
+export MOBILERUN_CLOUD_API_KEY="..."
+export MOBILERUN_CLOUD_DEVICE_ID="<device-id>"
+node droidrun_mobilerun_ops.mjs health
+node droidrun_mobilerun_ops.mjs ui-summary
+```
+
+The helper prints sanitized JSON and writes ignored evidence under `tools/mobilerun-ops/evidence/`. It must not replace the normal Python harness or commit API keys, one-time codes, or live device ids.
+
 ## Loading Model
 
 Skill-based runtimes can load `SKILL.md`; all runtimes should start with
