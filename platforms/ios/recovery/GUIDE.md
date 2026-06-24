@@ -31,7 +31,7 @@ If a physical-device Portal is not reachable:
 ```bash
 cd /path/to/ios-portal
 ./device.sh <device-udid>
-iproxy -u <device-udid> 6643 6643
+iproxy -u <device-udid> -s 127.0.0.1 6643:6643
 curl -fsS http://127.0.0.1:6643/device/date
 ```
 

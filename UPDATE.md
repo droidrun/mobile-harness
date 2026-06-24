@@ -54,8 +54,12 @@ The git pull only refreshes the Markdown harness; the control libraries in
 
 ```bash
 <harness-root>/.venv/bin/python -m pip install -U "mobilerun-core[local]" mobilerun-core-local mobilerun-sdk
-<harness-root>/.venv/bin/python -c "from mobilerun_core import Mobilerun"
+<harness-root>/.venv/bin/python -c "from importlib.metadata import version; from mobilerun_core import Mobilerun; print(version('mobilerun-core'))"
 ```
+
+The explicit `mobilerun-core-local` and `mobilerun-sdk` entries are intentional:
+they force already-installed transitive runtime packages to upgrade in the
+session venv. Normal agent code should still import only `mobilerun_core`.
 
 If offline, continue with the current version; skip the upgrade if a version
 is pinned.

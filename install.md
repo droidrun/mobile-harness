@@ -12,7 +12,7 @@ Install the full `mobilerun-core` surface:
 cd /path/to/mobile-harness
 python -m venv .venv
 .venv/bin/python -m pip install "mobilerun-core[local]"
-.venv/bin/python -c "from mobilerun_core import Mobilerun"
+.venv/bin/python -c "from importlib.metadata import version; from mobilerun_core import Mobilerun; print(version('mobilerun-core'))"
 ```
 
 Use Python 3.11, 3.12, or 3.13 to create the venv. `mobilerun-core` and
@@ -41,6 +41,16 @@ from mobilerun_core import Mobilerun
 ```
 
 Do not teach agents to use `mobilerun_core_local` directly for normal control.
+
+Use package metadata for installed-version checks:
+
+```python
+from importlib.metadata import version
+
+print(version("mobilerun-core"))
+```
+
+Do not rely on module `__version__` constants for package verification.
 
 ## Environment
 
