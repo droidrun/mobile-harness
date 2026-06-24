@@ -41,6 +41,21 @@ Use `MOBILERUN_IOS_PORTAL_URL` to omit `url=`.
 After connecting, inspect `device.capabilities` and use `device.supports(...)`
 before optional operations.
 
+## Common Helpers
+
+Use the `device` returned by `Mobilerun.connect(...)`:
+
+- `device.find_nodes(...)` searches the accessibility tree. `any_contains=`
+  matches case-insensitive substrings across text, content description,
+  resource id, and accessibility identifier.
+- `device.tap_node(node)` taps the center of a node and fails clearly if bounds
+  are missing or unusable.
+- `device.tap_text("label")` finds and taps the first matching text,
+  description, resource id, or accessibility identifier.
+- `device.type("text", clear=True)` clears the focused field before typing
+  when text input is supported.
+- `device.clear_input()` is supported by local iOS Portal HTTP.
+
 ## Capability Classification
 
 Classify before acting:

@@ -50,6 +50,27 @@ if device.supports("stop_app"):
     device.stop_app("com.android.settings")
 ```
 
+## Common Helpers
+
+Prefer accessibility-tree helpers over guessed coordinates:
+
+- `device.find_nodes(...)` accepts filters such as `text=`, `desc=`,
+  `resource_id=`, `text_contains=`, `desc_contains=`, and `any_contains=`.
+  `any_contains=` matches case-insensitive substrings across text, content
+  description, resource id, and accessibility identifier.
+- `device.tap_node(node)` taps the center of a node and fails clearly if bounds
+  are missing or unusable.
+- `device.tap_text("label")` finds and taps the first matching text,
+  description, resource id, or accessibility identifier.
+- `device.type("text", clear=True)` clears the focused field before typing.
+  ADB-only mode supports ordinary text input; Portal remains the richer path
+  when available.
+- `device.clear_input()` clears the focused field when supported.
+- `device.list_apps()` excludes system apps by default. Use
+  `device.list_apps(include_system_apps=True)` when a full installed-package
+  inventory is needed and supported. Raw `pm list packages` is a diagnostic
+  fallback, not the normal control API.
+
 ## Capability Classification
 
 Classify before acting:
