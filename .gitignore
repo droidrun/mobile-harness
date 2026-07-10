@@ -15,6 +15,12 @@ credentials/**
 
 tmp/
 
+# Curator reports are regenerable. Run scripts/curate.py to recreate them.
+.curator/
+
+# Secrets, just in case.
+.env
+
 # Local QA helpers and experiments. The harness product is Markdown-only.
 scripts/
 tests/
