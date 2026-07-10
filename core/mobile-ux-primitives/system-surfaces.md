@@ -15,5 +15,8 @@ A system-level gesture (swipe up and hold, or a dedicated button) shows recently
 ## Deep links and intents
 Some actions (tapping a shared link, an OAuth "Continue with Google" button, a "Open in App" banner) hand off to another app or a system browser view and then return. Expect a brief app-switch during these — it is not an error state, and the return trip usually lands back in the originating app automatically once the handoff completes.
 
+## Compatibility / informational dialogs
+Some system or older pre-installed apps show a one-time system-styled dialog on launch warning the app targets an old Android version and "may not work correctly" or lacks recent security/privacy protections, with an "OK" (dismiss) and a "check for update" option. Confirmed live (2026-07-10, stock SMS/MMS app). Treat like a permission dialog: resolve it (dismiss with OK unless the task specifically wants an update check) before the underlying screen becomes interactive — it's informational, not a task blocker, and dismissing it doesn't affect the app's actual functionality for a given run.
+
 ## Toasts, snackbars, and banners
 Small, temporary messages (often at the bottom, auto-dismissing after a few seconds) confirm an action already happened (“Copied to clipboard”, “Post shared”) — they are not asking for input and don't need to be dismissed manually before continuing, though they may temporarily overlap other bottom-screen elements like a FAB.

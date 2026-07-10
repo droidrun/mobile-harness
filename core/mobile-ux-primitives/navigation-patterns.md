@@ -25,3 +25,8 @@ Multi-step flows (checkout, sign-up, filters) often show a progress indicator (d
 
 ## Search entry points
 Search is usually one of: a persistent search bar at the top of a feed, a magnifying-glass icon that expands into a text field, or a dedicated bottom-nav tab. Tapping a search icon that doesn't visibly expand may have moved focus to an already-present but unstyled input — check for a cursor/keyboard before re-tapping.
+
+**Observed (2026-07-10, live device, Android Settings):** typing immediately after the first tap into a freshly-opened search field can silently no-op — the keyboard was visibly up but the field hadn't taken focus yet, so the typed text didn't land and the field stayed empty. A second tap directly on the field (or a short `wait` before typing) fixed it. Treat "keyboard visible" and "field is actually focused and accepting input" as two different things to confirm, not one — re-observe/re-check the field's contents after typing rather than assuming it landed.
+
+## Home screen icon clusters / folders
+A small stack of 2-4 overlapping app icons inside one home-screen slot is a folder, not a single app — tapping it expands into a labeled overlay grid of the apps inside (e.g. "System Tools"), rather than launching anything directly. Confirmed live (2026-07-10): tapping a "System..." icon cluster on a stock Android launcher expanded into a named folder with 9 apps. Tap an app inside the overlay to launch it, or tap outside the overlay to collapse it back.
