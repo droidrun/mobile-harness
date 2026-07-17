@@ -18,4 +18,4 @@ Use this card only when Reddit is the foreground package or the task explicitly 
 ## Traps
 
 - Vote counts can lag briefly after tapping; re-observe rather than assuming the tap failed if the score doesn't change instantly.
-- If Reddit asks to log in or verify an account, stop and read `core/credentials/SKILL.md`.
+- If Reddit asks to log in or verify an account, stop and read `core/credentials`.

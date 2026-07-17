@@ -24,13 +24,33 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 CORE_DIR = REPO_ROOT / "core"
+PLATFORMS_DIR = REPO_ROOT / "platforms"
 
 FRONTMATTER_RE = re.compile(r"^---\n(.*?)\n---\n", re.DOTALL)
-CORE_REF_RE = re.compile(r"`(core/[\w-]+(?:/GUIDE\.md)?)`")
+# Matches `core/<x>` / `core/<x>/GUIDE.md` and `platforms/<p>/GUIDE.md` /
+# `platforms/<p>/recovery/GUIDE.md`-shaped references inside backticks.
+REF_RE = re.compile(r"`((?:core|platforms|apps)/[\w./-]+)`")
+
+# Directories whose .md files are either historical (pre-port, not worth
+# linting against current conventions) or local/gitignored (no fixed
+# structure to check): excluded from the repo-wide scan below.
+EXCLUDED_DIRS = {"campaign", "memory", "credentials", ".curator"}
 
 
 def all_core_guides():
     return sorted(CORE_DIR.glob("*/GUIDE.md"))
+
+
+EXCLUDED_FILES = {"PORTING-NOTES.md"}  # documents the SKILL.md->GUIDE.md rename by name, on purpose
+
+
+def all_repo_markdown():
+    """Every tracked-in-spirit .md file except historical/local-state dirs."""
+    for path in REPO_ROOT.rglob("*.md"):
+        rel = path.relative_to(REPO_ROOT)
+        if any(part in EXCLUDED_DIRS for part in rel.parts) or rel.name in EXCLUDED_FILES:
+            continue
+        yield path
 
 
 def test_every_core_dir_has_a_guide_not_a_skill_file():
@@ -41,8 +61,8 @@ def test_every_core_dir_has_a_guide_not_a_skill_file():
 
 
 def test_every_guide_has_name_and_description_frontmatter():
-    guides = all_core_guides()
-    assert guides, "expected at least one core/*/GUIDE.md"
+    guides = all_core_guides() + sorted(PLATFORMS_DIR.glob("*/GUIDE.md")) + sorted(PLATFORMS_DIR.glob("*/*/GUIDE.md"))
+    assert guides, "expected at least one core/*/GUIDE.md or platforms/**/GUIDE.md"
     for path in guides:
         text = path.read_text()
         m = FRONTMATTER_RE.match(text)
@@ -52,15 +72,19 @@ def test_every_guide_has_name_and_description_frontmatter():
         assert re.search(r"^description:\s*\S+", fm, re.MULTILINE), f"{path}: frontmatter missing description:"
 
 
-def test_core_cross_references_resolve():
-    """Every `core/<x>` or `core/<x>/GUIDE.md` mentioned in a core/*/GUIDE.md's
-    body (or its reference files) must correspond to a real path in this repo.
+def test_cross_references_resolve_repo_wide():
+    """Every `core/<x>`, `platforms/<p>/GUIDE.md`, or `apps/index.md`-shaped
+    reference anywhere in the repo (AGENTS.md, SKILL.md, README.md,
+    install.md, platforms/**, core/**) must correspond to a real path.
+    Excludes CARD.md-style app-id placeholders like `apps/android/<package>/CARD.md`,
+    which are intentionally not real paths.
     """
-    checked_files = list(all_core_guides()) + list(CORE_DIR.glob("*/*.md"))
     broken = []
-    for path in checked_files:
+    for path in all_repo_markdown():
         text = path.read_text()
-        for ref in CORE_REF_RE.findall(text):
+        for ref in REF_RE.findall(text):
+            if "<" in ref:  # placeholder path, e.g. apps/android/<package>/CARD.md
+                continue
             target = REPO_ROOT / ref
             # Accept either the literal path, or (if it names a bare `core/<x>`
             # without /GUIDE.md) the directory existing with a GUIDE.md inside.

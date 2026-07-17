@@ -5,7 +5,10 @@ description: Use after Android ADB, Portal HTTP, state, screenshot, accessibilit
 
 # Android Recovery
 
-Use this only after a concrete failure.
+Use this only after a concrete connectivity, setup, or state-extraction
+failure. For an in-app action that didn't produce the expected result, read
+`core/debugging/GUIDE.md` instead — this file is about the backend/device
+connection, not action-level retry logic.
 
 ## Classify The Failure
 
@@ -15,8 +18,10 @@ Use this only after a concrete failure.
 - **No Portal HTTP**: `/ping` fails or port is not reachable.
 - **Bad token**: `/ping` works but `/version` returns `401`.
 - **No accessibility state**: HTTP/content provider returns accessibility unavailable or empty state.
-- **Input failed**: tap/type returns success but the UI did not change.
-- **App blocked**: permission dialog, login wall, credential screen, crash, or frozen UI.
+- **Input failed**: tap/type returns success but the UI did not change. If this repeats, treat it as an action failure — read `core/debugging/GUIDE.md`'s retry rules rather than continuing to retry connection-level fixes here.
+- **App blocked by a dialog or permission prompt**: read `core/blockers/GUIDE.md` to classify and clear it — this is not a connection problem.
+- **App blocked by a login wall or credential screen**: read the credentials guide under `core/credentials`.
+- **App blocked by a crash or frozen UI**: this is a genuine app/device problem, not covered by `core/blockers` or `core/debugging`; try relaunching the app once, then stop and report if it recurs.
 
 ## ADB Recovery
 
@@ -53,13 +58,15 @@ If `/state_full` fails but `/version` works, Portal HTTP is authenticated but de
 
 ## Action Recovery
 
-After a failed tap or input:
+After a failed tap or input that isn't explained by anything above:
 
 1. Observe again.
-2. Check whether a permission dialog, login screen, or keyboard changed the target.
+2. Check whether a permission dialog, login screen, or keyboard changed the target — if so, this is `core/blockers` or `core/credentials`, not a recovery-file matter.
 3. Use UI-tree bounds if available. If not - use screenshots.
 4. Try one alternative action.
 5. If still stuck, stop and report the exact blocker.
+
+This overlaps deliberately with `core/debugging/GUIDE.md`'s retry rules — prefer that file for anything that's clearly an in-app action problem rather than a device/backend one; use this section only when you landed here first and haven't already applied that classification.
 
 ## Credential Or Human-Gated Screens
 

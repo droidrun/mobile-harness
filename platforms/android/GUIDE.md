@@ -158,10 +158,24 @@ or is not suitable for some reasons, use the screenshots.
 
 1. Observe current state before acting.
 2. Identify foreground package and activity.
-3. Load `apps/android/<package>/CARD.md` if present and not already loaded this turn.
-4. Act once.
-5. Observe again and verify the expected change.
-6. If the expected change did not happen, read `platforms/android/recovery/GUIDE.md`.
+3. Before treating an unfamiliar element as something to explore from
+   scratch, check `core/mobile-ux-primitives/GUIDE.md` for a matching
+   pattern and act on the default if one applies. If the screen turns out to
+   be the app's own tutorial, coach mark, or onboarding walkthrough rather
+   than something to solve directly, read
+   `core/learn-from-tutorial/GUIDE.md` instead of just dismissing it.
+4. Load `apps/android/<package>/CARD.md` if present and not already loaded this turn.
+5. Act once.
+6. If the screen doesn't show the expected result and something might be
+   covering it (a permission prompt, an ANR/update nag, an unrecognized
+   modal), classify it with `core/blockers/GUIDE.md` before assuming this is
+   an action failure.
+7. Observe again and verify the expected change.
+8. If the expected change still did not happen, read
+   `core/debugging/GUIDE.md` to classify the failure and decide whether to
+   retry. Only read `platforms/android/recovery/GUIDE.md` if it turns out to
+   be a connectivity, setup, or state-extraction problem rather than an
+   in-app action problem.
 
 Do not chain many actions blindly.
 

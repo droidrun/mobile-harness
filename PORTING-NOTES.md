@@ -34,39 +34,44 @@ so this is staged content to apply by hand, not a mergeable branch.
   `content-and-feeds.md`, `system-surfaces.md`) are unchanged — they don't
   reference anything autotap-specific.
 
-## What still needs manual edits in the real repo (not in this branch — those files don't exist here)
+## Root files and `platforms/` — fetched from the real repo and reconciled in
 
-This checkout predates `AGENTS.md`, `SKILL.md`, `install.md`, and
-`platforms/`, so the following can't be diffed from here. Apply these three
-small edits directly against a real clone of `droidrun/mobile-harness`:
+This checkout initially predated `AGENTS.md`, `SKILL.md`, `install.md`, and
+`platforms/` (it started as a scaffold before a real checkout existed here),
+so the five edits below were originally written as a manual to-do list for
+someone applying this branch against a real clone. They're now done directly
+in this checkout instead: `AGENTS.md`, `SKILL.md`, `install.md`, `README.md`,
+`UPDATE.md`, `apps/index.md`, and `platforms/{android,ios}/{GUIDE.md,recovery/GUIDE.md}`
+were fetched verbatim from `github.com/droidrun/mobile-harness` and then
+edited with the five changes below applied for real (both platforms, not just
+Android — `platforms/ios/` got the same treatment on inspection, not left
+"presumably wants this, unread" as originally noted):
 
-1. **Root `AGENTS.md`, Load Order section** — add a step so agents actually
-   load this file. Something like: "Before observing an unfamiliar screen,
-   read `core/mobile-ux-primitives/GUIDE.md`." It currently jumps straight
-   from the pip-upgrade step to platform routing; this content is
-   cross-platform and belongs before that split, not inside it.
-2. **Root `SKILL.md`, Load Order section** — same addition, one line, for
-   runtimes that load `SKILL.md` instead of `AGENTS.md`.
-3. **`platforms/android/GUIDE.md`, Observe-Act-Verify Loop section** — it
-   currently loads the app CARD (step 3) but never mentions
-   `core/mobile-ux-primitives`. Add it as a step before the CARD load, e.g.
-   "Check `core/mobile-ux-primitives/GUIDE.md` for a matching pattern before
-   treating an unfamiliar element as something to explore." `platforms/ios/`
-   presumably wants the same addition, unread here.
-4. **`platforms/android/GUIDE.md`, Observe-Act-Verify Loop, step 6** —
-   currently says "If the expected change did not happen, read
-   `platforms/android/recovery/GUIDE.md`." That file handles
-   connection/backend recovery well but has nothing for in-app action
-   failures or blocked screens. Point step 6 at `core/debugging/GUIDE.md`
-   first (it now covers that split explicitly and routes to
-   `platforms/android/recovery/GUIDE.md` itself when it's actually a backend
-   problem).
-5. **`platforms/android/recovery/GUIDE.md`, "App blocked" bullet** — currently
-   just names the case ("permission dialog, login wall, credential screen,
-   crash, or frozen UI") with no guidance. Point it at `core/blockers/GUIDE.md`
-   for the permission/dialog case and `core/credentials` for the
-   login/credential case — it already does the latter implicitly via its
-   "Credential Or Human-Gated Screens" section, just add the former.
+1. Root `AGENTS.md`, Load Order — added a step: read
+   `core/mobile-ux-primitives/GUIDE.md` before the platform split, not inside it.
+2. Root `SKILL.md`, Load Order — same addition.
+3. `platforms/{android,ios}/GUIDE.md`, Observe-Act-Verify Loop — added a step
+   before the CARD load: check `core/mobile-ux-primitives/GUIDE.md` for a
+   matching pattern, and read `core/learn-from-tutorial/GUIDE.md` if the
+   screen turns out to be the app's own tutorial.
+4. Same loop — added a step after acting: if the result doesn't match and
+   something might be covering the screen, classify it with
+   `core/blockers/GUIDE.md` before assuming it's an action failure. The final
+   "if it didn't work, read recovery" step now reads `core/debugging/GUIDE.md`
+   first, falling through to `platforms/<p>/recovery/GUIDE.md` only for
+   genuine connectivity/backend problems.
+5. `platforms/{android,ios}/recovery/GUIDE.md` — added explicit "App blocked
+   by a dialog" → `core/blockers` and "App blocked by a crash" (unhandled by
+   either new file) classifications alongside the existing credential-gate
+   handling, and a note in "Action Recovery" that it deliberately overlaps
+   with `core/debugging` and defers to it for in-app action problems.
+
+`tests/test_structure.py`'s cross-reference check was broadened at the same
+time from `core/` only to the whole repo (`AGENTS.md`, `SKILL.md`,
+`README.md`, `install.md`, `platforms/**`) — it caught a real, separate bug
+while doing this: the three example `apps/android/*/CARD.md` files still
+said `core/credentials/SKILL.md` in their Traps line (predating the
+credentials-file rename earlier in this branch). Fixed in the same pass.
 
 ## `scripts/curate.py` — now ported (was "not ported" as of the first commit on this branch)
 

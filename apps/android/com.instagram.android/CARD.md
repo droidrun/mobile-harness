@@ -19,4 +19,4 @@ Use this card only when Instagram is the foreground package or the task explicit
 ## Traps
 
 - Double-tapping an already-liked post does not unlike it — only the heart icon reliably toggles both directions.
-- If Instagram asks to log in, verify a code, or confirm a phone number, stop and read `core/credentials/SKILL.md`.
+- If Instagram asks to log in, verify a code, or confirm a phone number, stop and read `core/credentials`.

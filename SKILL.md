@@ -28,9 +28,12 @@ local backends.
 ## Load Order
 
 1. Read `AGENTS.md`.
-2. Read `platforms/android/GUIDE.md` for Android work.
-3. Read `platforms/ios/GUIDE.md` for iOS work.
-4. Read recovery, credentials, memory, and app-card files only when routed
-   there by `AGENTS.md` or the platform guide.
+2. Read `core/mobile-ux-primitives/GUIDE.md` before observing an unfamiliar screen — cross-platform, load it before the platform split below.
+3. Read `platforms/android/GUIDE.md` for Android work.
+4. Read `platforms/ios/GUIDE.md` for iOS work.
+5. Read recovery, credentials, memory, and app-card files only when routed
+   there by `AGENTS.md` or the platform guide. For an in-app action failure or
+   a dialog/permission prompt (not a connectivity failure), that means
+   `core/debugging/GUIDE.md` or `core/blockers/GUIDE.md`.
 
 For setup and runtime registration, read `install.md`.
