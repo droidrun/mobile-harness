@@ -53,6 +53,20 @@ small edits directly against a real clone of `droidrun/mobile-harness`:
    "Check `core/mobile-ux-primitives/GUIDE.md` for a matching pattern before
    treating an unfamiliar element as something to explore." `platforms/ios/`
    presumably wants the same addition, unread here.
+4. **`platforms/android/GUIDE.md`, Observe-Act-Verify Loop, step 6** —
+   currently says "If the expected change did not happen, read
+   `platforms/android/recovery/GUIDE.md`." That file handles
+   connection/backend recovery well but has nothing for in-app action
+   failures or blocked screens. Point step 6 at `core/debugging/GUIDE.md`
+   first (it now covers that split explicitly and routes to
+   `platforms/android/recovery/GUIDE.md` itself when it's actually a backend
+   problem).
+5. **`platforms/android/recovery/GUIDE.md`, "App blocked" bullet** — currently
+   just names the case ("permission dialog, login wall, credential screen,
+   crash, or frozen UI") with no guidance. Point it at `core/blockers/GUIDE.md`
+   for the permission/dialog case and `core/credentials` for the
+   login/credential case — it already does the latter implicitly via its
+   "Credential Or Human-Gated Screens" section, just add the former.
 
 ## `scripts/curate.py` — now ported (was "not ported" as of the first commit on this branch)
 
@@ -81,3 +95,48 @@ rewrite:
 Report output (`.curator/reports/`) is already gitignored here
 (`.curator/` — "curator reports are regenerable"), so it travels with the
 script, not as committed output.
+
+## `core/debugging` and `core/blockers` — new, ported from `mobile-harness-skills` (the other, private repo)
+
+Not from autotap this time — from `mobile-harness-skills`, the private
+knowledge repo behind the Cloud VA's `kilo` runtime, which already has a
+mature action-failure taxonomy that `mobile-harness` (this repo) had nothing
+equivalent to. `mobile-harness`'s own `platforms/android/recovery/GUIDE.md`
+only covers connection/backend failures (no ADB, bad Portal token, etc.) —
+nothing for "the tap/type/expected-screen-change didn't happen" or "a dialog
+is covering the screen," which is what these two add.
+
+This was a real adaptation, not a copy — `mobile-harness-skills`' originals
+assume infrastructure specific to the Cloud VA runtime that doesn't exist in
+the public `mobilerun-core[local]` package this repo uses:
+
+- `core/debugging` (source): written against kilo-specific exception types
+  (`HitlDenied`), a `mobilerun_sdk` control-plane error, and methods
+  (`current_app_id()`, `wait_for_text`/`wait_for_app`) not confirmed to exist
+  in the public `mobilerun_core` API surface documented in this repo's own
+  `README.md`/`platforms/android/GUIDE.md` (`find_nodes`, `tap_node`,
+  `tap_text`, `type`, `clear_input`, `list_apps`, `ui`, `screenshot`,
+  `capabilities`/`supports`). The ported version is written only in terms of
+  that confirmed surface, describes failures observationally instead of by
+  exception class name I can't verify exists here, and routes backend/
+  connection errors to `platforms/android/recovery/GUIDE.md` instead of
+  assuming a specific SDK error type.
+- `core/blockers` (source): built around `lib.dismiss_blockers`, a helper
+  library that lives in the Cloud VA's `/ephemeral/scripts`, and a
+  `question`-card UI primitive specific to that product's chat surface.
+  Neither exists here. The ported version keeps the actually-portable part —
+  the `nag` / `unknown_modal` / `permission_grantable` / `permission_sensitive`
+  classification and the never-auto-grant-on-sensitive-scopes rule — but
+  reframes detection as reading `device.ui()`/`find_nodes()` directly (no
+  helper library to call), and reframes "ask via a question card" as "ask one
+  short question and wait, offer concrete options," matching the pattern
+  `core/credentials/GUIDE.md` already uses for the same kind of gate.
+
+Both close the gap identified when discussing this: `core/memory/GUIDE.md`
+already had the *storage* half (a `failures.md` slot, "prior failure and
+verified recovery" as a write-trigger, the dated-fact format) but nothing
+told an agent how to *detect and classify* a failure before writing one down,
+or how many times to retry before giving up. `core/debugging`'s Memory
+section explicitly points back into that existing slot
+(`memory/apps/<app-id>.md` for app-specific fixes, `memory/failures.md` for
+cross-app/environment ones) rather than inventing a new location.
