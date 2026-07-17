@@ -4,7 +4,7 @@
 First-launch screens often present 2-5 full-screen panels (illustration + short text) with dots at the bottom indicating position, advanced by swiping or an explicit "Next" button, and a "Skip" option usually top-right or top-left. These are marketing/orientation content, not configuration — skipping is almost always safe and reversible (nothing is being set that can't be changed later in settings).
 
 ## Coach marks / tooltips
-Short-lived overlays that highlight one specific UI element the first time it's relevant (a spotlight or circle around an icon, with a brief explanation and a "Got it"/"×" dismissal). These indicate the app itself expects this to be a point of confusion — worth capturing verbatim if seen, since it's the app's own tutorial content (see `skills/meta/learn-from-tutorial`).
+Short-lived overlays that highlight one specific UI element the first time it's relevant (a spotlight or circle around an icon, with a brief explanation and a "Got it"/"×" dismissal). These indicate the app itself expects this to be a point of confusion — worth capturing verbatim if seen, since it's the app's own tutorial content (see `core/learn-from-tutorial/GUIDE.md`).
 
 ## Progress indicators in multi-step forms
 A fraction ("Step 2 of 4"), a horizontal progress bar, or a row of dots communicates how much of a flow remains. Use this to distinguish "this form has more steps coming" from "this is the final confirmation" before assuming a flow is complete.
