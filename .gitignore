@@ -21,6 +21,7 @@ tmp/
 # Secrets, just in case.
 .env
 
-# Local QA helpers and experiments. The harness product is Markdown-only.
-scripts/
-tests/
+# scripts/ and tests/ are tracked: the curator and its test suite ship with the
+# harness. Only their build artifacts are ignored.
+scripts/__pycache__/
+tests/__pycache__/
