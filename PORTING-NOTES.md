@@ -54,14 +54,30 @@ small edits directly against a real clone of `droidrun/mobile-harness`:
    treating an unfamiliar element as something to explore." `platforms/ios/`
    presumably wants the same addition, unread here.
 
-## Not ported
+## `scripts/curate.py` — now ported (was "not ported" as of the first commit on this branch)
 
-Autotap's `curate.py` (the script that scans app CARDs for
-`<!-- generalizable: tag --></tag>` bullets repeated across ≥3 apps and
-proposes `core/` promotions) was deliberately left out. It's a real,
-validated mechanism, but it's an autotap-specific tool (reads autotap's
-`examples/skills/*/SKILL.md` layout, not mobile-harness's
-`apps/<platform>/<id>/CARD.md` layout) — porting the underlying *idea* (a
-periodic script that greps `memory/apps/*.md` + `apps/*/CARD.md` for repeated
-`generalizable` tags and drafts a promotion PR) is a reasonable follow-up, but
-it's new work, not a straight port, and is out of scope for this branch.
+Adapted from autotap's `curate.py`, with two real changes beyond a path
+rewrite:
+
+- **Scans two sources, not one.** Autotap's version only read
+  `apps/<platform>/<id>/CARD.md`. This repo's `core/learn-from-tutorial/GUIDE.md`
+  tells agents to write fresh findings to `memory/apps/<app-id>.md` *before*
+  they're confirmed enough for a CARD — so a `generalizable` tag placed there
+  per that guide would never have surfaced anywhere. The ported script scans
+  `memory/**/*.md` too, attributing `memory/apps/<app-id>.md` to that app for
+  the `--min-apps` count, and still reports (but doesn't count toward the
+  threshold) freeform memory files that don't follow that naming.
+- **`--apply` flag.** Autotap's version was report-only by design (a human
+  reviews `.curator/reports/*.md` and promotes by hand). That gate is kept as
+  the default. `--apply` additionally drafts each promoted tag directly into
+  the suggested `core/mobile-ux-primitives/<file>.md`, inside a clearly
+  marked `<!-- BEGIN curator-candidate -->...<!-- END -->` block — still not
+  auto-merged into the real prose, still requires a human to fold it in or
+  delete it, but removes the hand-copy step. Smoke-tested against this
+  checkout's three example CARDs: correctly caught `infinite-scroll-no-pagination`
+  as independently confirmed in all three (eBay, Instagram, Reddit) and
+  drafted it into `content-and-feeds.md`.
+
+Report output (`.curator/reports/`) is already gitignored here
+(`.curator/` — "curator reports are regenerable"), so it travels with the
+script, not as committed output.

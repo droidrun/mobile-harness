@@ -23,3 +23,12 @@ A single-action "Follow"/"Subscribe" button is typically one-directional and com
 
 ## Don't infer view/state from a header label alone
 A header, title bar, or dropdown/spinner label often names a broader context (a month, a category, a section) rather than describing the specific layout currently on screen — the two can look related but aren't the same claim. **Misfire confirmed live (2026-07-10, mobilerun Task Runner):** asked to identify which calendar view (day/week/month/agenda) was showing by default, an agent read a header `Spinner` labeled with just the current month/year ("juillet 2026") and reported "defaults to the month view" — but the actual on-screen content was an hourly day/week grid (day-of-week columns, hour-of-day rows), not a month grid at all. The header label was true (it *was* showing July 2026) but didn't answer the actual question (what layout is showing). **Rule of thumb: when a task asks you to identify a view, mode, or layout, verify it against the structure of the content actually rendered (grid shape, row/column meaning, item density), not just a nearby label or title — a label can be accurate about context while still being silent on the thing you were actually asked to determine.**
+
+<!-- BEGIN curator-candidate: review and fold into the prose above, or delete -->
+## Curator-suggested additions (unreviewed)
+
+- `infinite-scroll-no-pagination` — seen in: card:android/com.ebay.mobile, card:android/com.instagram.android, card:android/com.reddit.frontpage
+  - [card:android/com.ebay.mobile · Flow Notes] Results use infinite scroll — keep scrolling until the collected count stops growing; there's no next-page button.
+  - [card:android/com.instagram.android · Flow Notes] The home feed loads more posts automatically near the bottom of the scroll; there's no "load more" button — keep scrolling until new posts stop appearing.
+  - [card:android/com.reddit.frontpage · Flow Notes] Subreddit and post feeds auto-load additional content near the bottom of the scroll; there is no numbered pagination control.
+<!-- END curator-candidate -->
