@@ -13,9 +13,11 @@ Cloud or `ios-portal`.
 - iOS only.
 - Primary API is `mobilerun_core.Mobilerun`.
 - Cloud iOS uses `backend="cloud"`.
-- Local backend is `ios-portal` HTTP.
+- The local backend `local-ios-http` speaks the `ios-portal` Portal app
+  contract only. It cannot drive the `mobilerun-ios --local` server; see
+  "Two Local iOS Portals" below.
 - Local iOS requires `mobilerun-core` installed with the `local` extra, or `mobilerun-core-local` installed alongside it.
-- No bearer token is required for local iOS Portal.
+- No bearer token is required for the local iOS Portal app.
 
 ## Primary Control
 
@@ -41,20 +43,85 @@ Use `MOBILERUN_IOS_PORTAL_URL` to omit `url=`.
 After connecting, inspect `device.capabilities` and use `device.supports(...)`
 before optional operations.
 
+`device.execute_script("<js>")` runs JavaScript in the device's foreground
+Chrome tab and returns its JSON result (`None` when the script returns
+`undefined`). Cloud devices only; local backends raise `UnsupportedOperation`.
+Gate it with `device.supports("execute_script")`. On cloud connections this
+check fetches device capabilities over the network once per connection, a
+fetch failure raises instead of returning `False`, and it reports the device
+type rather than the current browser state. On local backends it returns
+`False` without any network call. `DEVICE_NO_BROWSER_TARGET` means
+no debuggable foreground Chrome tab right now; `DEVICE_TOOL_UNSUPPORTED`
+(HTTP 400) means the device type has no browser tooling. Neither error is a
+connection failure.
+
 ## Common Helpers
 
 Use the `device` returned by `Mobilerun.connect(...)`:
 
 - `device.find_nodes(...)` searches the accessibility tree. `any_contains=`
   matches case-insensitive substrings across text, content description,
-  resource id, and accessibility identifier.
+  resource id, and accessibility identifier. Nodes may carry `offscreen: True`
+  or `hidden: True` when the tree source reports visibility. A missing flag is
+  not proof of visibility; iOS Portal tree sources may not emit them.
 - `device.tap_node(node)` taps the center of a node and fails clearly if bounds
-  are missing or unusable.
-- `device.tap_text("label")` finds and taps the first matching text,
-  description, resource id, or accessibility identifier.
+  are missing or unusable. It may also reject a node flagged hidden.
+- `device.tap_text("label")` taps the first on-screen match across text,
+  description, resource id, and accessibility identifier. It raises a distinct
+  error when matches exist but none are tappable on-screen.
+- `device.scroll(direction, distance=0.5, ms=..., verify=False)` scrolls
+  content-relative: `"down"` reveals rows below. `distance` is a fraction of
+  half the screen. `verify=True` returns whether the viewport actually moved,
+  at the cost of two extra UI reads; otherwise the call returns `None`.
+- `device.scroll_until(text_contains=..., direction="down", max_swipes=10)`
+  scrolls until a match is on-screen, returning the node or `None`. On a
+  viewport stall it retries once with a stronger swipe, then returns `None`
+  early instead of using the whole swipe budget. Do not re-call it blindly.
 - `device.type("text", clear=True)` clears the focused field before typing
   when text input is supported.
 - `device.clear_input()` is supported by local iOS Portal HTTP.
+
+## Two Local iOS Portals
+
+Two local iOS servers exist and speak incompatible HTTP contracts:
+
+- **iOS Portal app** (`ios-portal`): default `http://127.0.0.1:6643`, one
+  port per device (probe 6643-6652), no token. Contract: `GET /device/date`,
+  `GET /state`, `GET /vision/screenshot`. This is the only contract
+  `backend="local-ios-http"` can drive.
+- **`mobilerun-ios --local <udid>`**: a host-side server, default
+  `http://127.0.0.1:8080`, one port per attached device (probe 8080-8089). It
+  speaks the Android-Portal-style contract (`/ping`, `/version`,
+  `/state_full`, `/screenshot`) and serves none of the Portal app endpoints.
+  Tokenless unless started with `--local-token` (mandatory for non-loopback
+  binds); then `Authorization: Bearer <--local-token value>`. Setup guide:
+  https://docs.mobilerun.ai/guides/connect-iphone
+
+To tell them apart, probe both port ranges:
+
+```bash
+for p in $(seq 8080 8089); do curl -sS "http://127.0.0.1:$p/version" && echo " <- $p"; done
+for p in $(seq 6643 6652); do curl -sS "http://127.0.0.1:$p/device/date" && echo " <- $p"; done
+```
+
+Interpret the responses:
+
+- A 200 body like `{"status":"success","result":"iosportal(..."}` on
+  `/version` identifies the `mobilerun-ios --local` server. Only the
+  `iosportal(` prefix inside the JSON `result` field is decisive.
+- A 200 JSON body with a `date` field on `/device/date` identifies the Portal
+  app.
+- A 401/403 on `/version` is ambiguous: either a `mobilerun-ios --local`
+  server started with `--local-token`, or a forwarded Android Portal without a
+  bearer token. Ask the user which server owns the port.
+- A `pong` from `/ping` is ambiguous; the Android Portal answers the same.
+- Anything else (404, HTML, connection refused) means an unrelated server or
+  no server.
+
+If only the `mobilerun-ios --local` server is running, do not point
+`backend="local-ios-http"` at it and do not start a second portal next to it.
+Report that `mobilerun_core` cannot drive it and ask the user whether to start
+the Portal app instead.
 
 ## Capability Classification
 
@@ -62,7 +129,7 @@ Classify before acting:
 
 1. **Cloud**: the user provided a Mobilerun Cloud device id. Use `backend="cloud"`.
 2. **iOS Portal HTTP**: `MOBILERUN_IOS_PORTAL_URL` is reachable and `GET /device/date`, `GET /state`, and `GET /vision/screenshot` work.
-3. **Blocked**: no cloud device id or reachable iOS Portal is available. Stop and ask the user to provide a cloud device or start `ios-portal`.
+3. **Blocked**: no cloud device id or reachable iOS Portal is available. Run the port probe in "Two Local iOS Portals" before concluding this; a running `mobilerun-ios --local` server is not "no portal". Then stop and ask the user to provide a cloud device or start `ios-portal`.
 
 Cloud requires `MOBILERUN_CLOUD_API_KEY`, `MOBILERUN_API_BASE_URL`, and
 `MOBILERUN_CLOUD_DEVICE_ID`. Use

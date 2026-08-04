@@ -9,12 +9,37 @@ Use this only after a concrete iOS control failure.
 
 ## Classify The Failure
 
-- **No iOS Portal**: `MOBILERUN_IOS_PORTAL_URL` is missing or `/device/date` cannot be reached.
+- **No iOS Portal**: `MOBILERUN_IOS_PORTAL_URL` is missing or `/device/date` cannot be reached. Run Portal Triage before Setup Recovery.
 - **Portal server exited**: requests start failing after earlier success, usually because the XCTest runner stopped.
 - **State extraction failure**: `/state` returns HTTP 200 but required state fields are missing or repeatedly empty while the UI is stable.
 - **Screenshot failure**: `/vision/screenshot` is non-PNG, zero bytes, or times out.
 - **Input failed**: tap/type returns success but the UI did not change.
 - **App blocked**: Crash or frozen UI.
+
+## Portal Triage
+
+A failed `/device/date` probe does not prove that no portal is running. The
+`mobilerun-ios --local <udid>` server takes one port per attached device
+starting at 8080 and serves none of `/device/date`, `/state`, or
+`/vision/screenshot`. Probe both port ranges and interpret the responses by
+the rules in "Two Local iOS Portals" in `platforms/ios/GUIDE.md`:
+
+```bash
+for p in $(seq 8080 8089); do curl -sS "http://127.0.0.1:$p/version" && echo " <- $p"; done
+for p in $(seq 6643 6652); do curl -sS "http://127.0.0.1:$p/device/date" && echo " <- $p"; done
+```
+
+If a `/version` body's `result` field starts with `iosportal(`, a
+`mobilerun-ios --local` server is running; `backend="local-ios-http"` cannot
+connect to it. Do not start a second portal next to it. Report the mismatch
+and ask the user whether to switch to the Portal app. A 401/403 is ambiguous
+(token-protected `mobilerun-ios --local` or a forwarded Android Portal); ask
+the user which server owns the port.
+
+Continue with Setup Recovery only when no port returned a portal-shaped
+response: no `iosportal(` `/version` result, no 401/403, and no `/device/date`
+body with a `date` field. Unrelated HTTP answers (404, HTML) do not block
+Setup Recovery.
 
 ## Setup Recovery
 

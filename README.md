@@ -66,17 +66,33 @@ device.start_app("com.android.settings")
 After connecting, agents should inspect `device.capabilities` and use
 `device.supports(...)` before optional operations.
 
+`device.execute_script("<js>")` runs JavaScript in the device's foreground
+Chrome tab and returns its JSON result. Cloud devices only; local backends
+raise `UnsupportedOperation`. Gate it with
+`device.supports("execute_script")`; the platform guides describe this key's
+network-probe behavior and its two server-side errors.
+
 ## Common Device Helpers
 
 Use these helpers through the `device` returned by `Mobilerun.connect(...)`:
 
 - `device.find_nodes(...)` searches the accessibility tree. `any_contains=`
   matches case-insensitive substrings across text, content description,
-  resource id, and accessibility identifier.
+  resource id, and accessibility identifier. Nodes may carry `offscreen: True`
+  (outside the viewport; scroll to reach it) and `hidden: True` (reported not
+  visible; scrolling alone may not reveal it). A missing flag is not proof of
+  visibility.
 - `device.tap_node(node)` taps the center of an accessibility node and raises
-  if the node has no usable bounds.
-- `device.tap_text("label")` finds and taps the first matching text,
-  description, resource id, or accessibility identifier.
+  if the node has no usable bounds. Before any bounds check, it raises a
+  distinct error for a node flagged hidden unless the node is also offscreen.
+- `device.tap_text("label")` taps the first on-screen, non-hidden match across
+  text, description, resource id, and accessibility identifier. It raises a
+  distinct error when matches exist but none are tappable on-screen.
+- `device.scroll(direction, distance=0.5, ms=..., verify=False)` scrolls
+  content-relative; `verify=True` returns whether the viewport actually moved.
+- `device.scroll_until(text_contains=..., direction="down", max_swipes=10)`
+  scrolls until a match is on-screen, returning the node or `None`. It stops
+  early with `None` when the viewport stops moving; do not re-call it blindly.
 - `device.type("text", clear=True)` clears the focused field before typing
   when the backend supports text input. `device.clear_input()` is available on
   local Android ADB and local iOS Portal HTTP.
@@ -142,6 +158,13 @@ Local iOS has one active capability mode:
 - `Blocked`: no reachable iOS Portal. Start `ios-portal` check info: https://github.com/droidrun/ios-portal
 
 The default local iOS Portal example is `http://127.0.0.1:6643`.
+
+A second local iOS server exists: `mobilerun-ios --local <udid>`, default
+`http://127.0.0.1:8080`, setup guide:
+https://docs.mobilerun.ai/guides/connect-iphone. `backend="local-ios-http"`
+speaks only the `ios-portal` contract and cannot connect to that server; do
+not point it at port 8080. `platforms/ios/GUIDE.md` explains how to tell the
+two apart.
 
 ## Local State
 

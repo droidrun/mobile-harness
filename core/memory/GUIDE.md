@@ -28,7 +28,7 @@ Write memory near the end of a task when the fact is durable and useful:
 Use this shape:
 
 ```markdown
-- 2026-05-28: Fact. Source: observed via <Mobilerun Cloud|ADB|Android Portal HTTP|iOS Portal HTTP|user>. Confidence: high|medium|low.
+- 2026-05-28: Fact. Source: observed via <Mobilerun Cloud|ADB|Android Portal HTTP|iOS Portal app HTTP (6643)|iOS local portal HTTP (mobilerun-ios --local, 8080-8089)|user>. Confidence: high|medium|low.
 ```
 
 Update `memory/index.md` when creating a new memory file.
