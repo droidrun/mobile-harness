@@ -40,9 +40,9 @@ the server was started with, and its startup log prints the device behind
 each URL. When it serves the target device, do not start a second portal next
 to it; report the mismatch and ask the user whether to switch to the Portal
 app. When ownership stays unclear, ask the user. A 401/403 counts as a
-portal only if the same port answers
-`curl -sS --max-time 3 "http://127.0.0.1:$p/ping"` with the unauthenticated
-`pong` envelope; both portals exempt `/ping` from auth. With the `pong` it is
+portal only if the same port that returned it answers
+`curl -sS --max-time 3 "http://127.0.0.1:<port>/ping"` with the
+unauthenticated `pong` envelope; both portals exempt `/ping` from auth. With the `pong` it is
 a token-protected `mobilerun-ios --local` or a forwarded Android Portal; ask
 the user which server owns the port. Without the `pong` it is an unrelated
 authenticated service.
