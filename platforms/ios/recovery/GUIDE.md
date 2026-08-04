@@ -51,6 +51,12 @@ a token-protected `mobilerun-ios --local` or a forwarded Android Portal; ask
 the user which server owns the port. Without the `pong` it is an unrelated
 authenticated service.
 
+A `/device/date` hit that serves the target device means its Portal app is
+already running on that port; do not run Setup Recovery. Verify the port with
+the probes in "iOS Portal HTTP Contract" in `platforms/ios/GUIDE.md`, then
+reconnect through `Mobilerun` with `backend="local-ios-http"` and that base
+URL (set `MOBILERUN_IOS_PORTAL_URL` or pass `url=`).
+
 Continue with Setup Recovery when no port returned a portal-shaped response
 (no `iosportal(` `/version` result, no 401/403 corroborated by a `/ping`
 `pong`, and no `/device/date` body with a `date` field), or when every

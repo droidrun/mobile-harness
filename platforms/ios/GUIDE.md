@@ -113,7 +113,9 @@ Interpret the responses:
   `/version` identifies the `mobilerun-ios --local` server. Only the
   `iosportal(` prefix inside the JSON `result` field is decisive.
 - A 200 JSON body with a `date` field on `/device/date` identifies the Portal
-  app.
+  app. If it serves the target device, connect there:
+  `backend="local-ios-http"` with that base URL (set
+  `MOBILERUN_IOS_PORTAL_URL` or pass `url=`).
 - A 401/403 on `/version` counts as a portal only if the same port answers
   `GET /ping` with the unauthenticated `pong` envelope; both portals exempt
   `/ping` from auth. With the `pong` it is either a `mobilerun-ios --local`
