@@ -114,9 +114,12 @@ Interpret the responses:
   `iosportal(` prefix inside the JSON `result` field is decisive.
 - A 200 JSON body with a `date` field on `/device/date` identifies the Portal
   app.
-- A 401/403 on `/version` is ambiguous: either a `mobilerun-ios --local`
-  server started with `--local-token`, or a forwarded Android Portal without a
-  bearer token. Ask the user which server owns the port.
+- A 401/403 on `/version` counts as a portal only if the same port answers
+  `GET /ping` with the unauthenticated `pong` envelope; both portals exempt
+  `/ping` from auth. With the `pong` it is either a `mobilerun-ios --local`
+  server started with `--local-token` or a forwarded Android Portal without a
+  bearer token; ask the user which server owns the port. Without the `pong`
+  it is an unrelated authenticated service.
 - A `pong` from `/ping` is ambiguous; the Android Portal answers the same.
 - Anything else (404, HTML, connection refused) means an unrelated server or
   no server.

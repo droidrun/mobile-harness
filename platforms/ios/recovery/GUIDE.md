@@ -39,14 +39,19 @@ multi-device host, correlate first: `pgrep -af mobilerun-ios` shows the UDIDs
 the server was started with, and its startup log prints the device behind
 each URL. When it serves the target device, do not start a second portal next
 to it; report the mismatch and ask the user whether to switch to the Portal
-app. When ownership stays unclear, ask the user. A 401/403 is ambiguous
-(token-protected `mobilerun-ios --local` or a forwarded Android Portal); ask
-the user which server owns the port.
+app. When ownership stays unclear, ask the user. A 401/403 counts as a
+portal only if the same port answers
+`curl -sS --max-time 3 "http://127.0.0.1:$p/ping"` with the unauthenticated
+`pong` envelope; both portals exempt `/ping` from auth. With the `pong` it is
+a token-protected `mobilerun-ios --local` or a forwarded Android Portal; ask
+the user which server owns the port. Without the `pong` it is an unrelated
+authenticated service.
 
 Continue with Setup Recovery when no port returned a portal-shaped response
-(no `iosportal(` `/version` result, no 401/403, and no `/device/date` body
-with a `date` field), or when every `iosportal(` hit serves a device other
-than the target. Unrelated HTTP answers (404, HTML) do not block Setup
+(no `iosportal(` `/version` result, no 401/403 corroborated by a `/ping`
+`pong`, and no `/device/date` body with a `date` field), or when every
+`iosportal(` hit serves a device other than the target. Unrelated HTTP
+answers (404, HTML, or 401/403 without the `pong`) do not block Setup
 Recovery.
 
 ## Setup Recovery
