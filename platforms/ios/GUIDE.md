@@ -125,12 +125,17 @@ Interpret the responses:
   no server.
 
 Neither `/version` nor `/device/date` says which device a server serves. On a
-host with several attached devices, correlate first: `pgrep -af
-mobilerun-ios` shows the UDIDs a `--local` server was started with (none when
-it auto-discovered devices), and its startup log prints the device behind
-each URL; `pgrep -af iproxy` shows the UDID behind each forwarded Portal app
-port; `pgrep -af xcodebuild` shows a Portal app's simulator name or device id
-in its `-destination` argument. If ownership stays unclear, ask the user.
+host with several attached devices, correlate first:
+
+```bash
+ps ax -o pid,command | grep -E "mobilerun-ios|iproxy|xcodebuild" | grep -v grep
+```
+
+A `--local` server's arguments show the UDIDs it was started with (none when
+it auto-discovered devices; its startup log prints the device behind each
+URL). An `iproxy` process shows the UDID behind each forwarded Portal app
+port. A Portal app's `xcodebuild` process shows the simulator name or device
+id in its `-destination` argument. If ownership stays unclear, ask the user.
 
 If the `mobilerun-ios --local` server serves the target device, do not point
 `backend="local-ios-http"` at it and do not start a second portal next to it.

@@ -35,12 +35,13 @@ no HTTP response at all.
 If a `/version` body's `result` field starts with `iosportal(`, a
 `mobilerun-ios --local` server is running; `backend="local-ios-http"` cannot
 connect to it. Neither `/version` nor `/device/date` says which device a
-server serves. On a multi-device host, correlate every hit with the target:
-`pgrep -af mobilerun-ios` shows the UDIDs a `--local` server was started with,
-and its startup log prints the device behind each URL; `pgrep -af iproxy`
-shows the UDID behind each forwarded Portal app port; `pgrep -af xcodebuild`
-shows a Portal app's simulator name or device id in its `-destination`
-argument. When a `--local` server serves the target device, do not start a
+server serves. On a multi-device host, correlate every hit with the target
+via `ps ax -o pid,command | grep -E "mobilerun-ios|iproxy|xcodebuild"`: a
+`--local` server's arguments show the UDIDs it was started with, and its
+startup log prints the device behind each URL; an `iproxy` process shows the
+UDID behind each forwarded Portal app port; an `xcodebuild` process shows a
+Portal app's simulator name or device id in its `-destination` argument.
+When a `--local` server serves the target device, do not start a
 second portal next to it; report the mismatch and ask the user whether to
 switch to the Portal app. When ownership stays unclear, ask the user. A 401/403 counts as a
 portal only if the same port that returned it answers
