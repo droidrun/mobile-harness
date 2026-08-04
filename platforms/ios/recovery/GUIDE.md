@@ -34,12 +34,15 @@ no HTTP response at all.
 
 If a `/version` body's `result` field starts with `iosportal(`, a
 `mobilerun-ios --local` server is running; `backend="local-ios-http"` cannot
-connect to it. `/version` does not say which device it serves. On a
-multi-device host, correlate first: `pgrep -af mobilerun-ios` shows the UDIDs
-the server was started with, and its startup log prints the device behind
-each URL. When it serves the target device, do not start a second portal next
-to it; report the mismatch and ask the user whether to switch to the Portal
-app. When ownership stays unclear, ask the user. A 401/403 counts as a
+connect to it. Neither `/version` nor `/device/date` says which device a
+server serves. On a multi-device host, correlate every hit with the target:
+`pgrep -af mobilerun-ios` shows the UDIDs a `--local` server was started with,
+and its startup log prints the device behind each URL; `pgrep -af iproxy`
+shows the UDID behind each forwarded Portal app port; `pgrep -af xcodebuild`
+shows a Portal app's simulator name or device id in its `-destination`
+argument. When a `--local` server serves the target device, do not start a
+second portal next to it; report the mismatch and ask the user whether to
+switch to the Portal app. When ownership stays unclear, ask the user. A 401/403 counts as a
 portal only if the same port that returned it answers
 `curl -sS --max-time 3 "http://127.0.0.1:<port>/ping"` with the
 unauthenticated `pong` envelope; both portals exempt `/ping` from auth. With the `pong` it is
@@ -50,9 +53,10 @@ authenticated service.
 Continue with Setup Recovery when no port returned a portal-shaped response
 (no `iosportal(` `/version` result, no 401/403 corroborated by a `/ping`
 `pong`, and no `/device/date` body with a `date` field), or when every
-`iosportal(` hit serves a device other than the target. Unrelated HTTP
-answers (404, HTML, or 401/403 without the `pong`) do not block Setup
-Recovery.
+portal-shaped hit serves a device other than the target. Another device's
+healthy portal never blocks recovery of the target, but its port stays taken;
+follow the port-in-use rule in Setup Recovery. Unrelated HTTP answers (404,
+HTML, or 401/403 without the `pong`) do not block Setup Recovery.
 
 ## Setup Recovery
 
@@ -73,7 +77,7 @@ iproxy -u <device-udid> -s 127.0.0.1 6643:6643
 curl -fsS http://127.0.0.1:6643/device/date
 ```
 
-If the port is already in use, stop the prior portal process or ask the user for a clean port/device setup. Do not guess a different device.
+If the port is already in use by another device's healthy portal, ask the user for a clean port setup; do not stop that portal. If it is held by a stale process for the target device, stop that process. Do not guess a different device.
 
 ## Action Recovery
 
