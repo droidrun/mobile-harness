@@ -25,8 +25,8 @@ starting at 8080 and serves none of `/device/date`, `/state`, or
 the rules in "Two Local iOS Portals" in `platforms/ios/GUIDE.md`:
 
 ```bash
-for p in $(seq 8080 8089); do curl -sS -w " [%{http_code}] <- $p\n" "http://127.0.0.1:$p/version"; done
-for p in $(seq 6643 6652); do curl -sS -w " [%{http_code}] <- $p\n" "http://127.0.0.1:$p/device/date"; done
+for p in $(seq 8080 8089); do curl -sS --max-time 3 -w " [%{http_code}] <- $p\n" "http://127.0.0.1:$p/version"; done
+for p in $(seq 6643 6652); do curl -sS --max-time 3 -w " [%{http_code}] <- $p\n" "http://127.0.0.1:$p/device/date"; done
 ```
 
 Each line prints the response body followed by the HTTP status; `[000]` means

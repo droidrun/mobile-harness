@@ -100,8 +100,8 @@ Two local iOS servers exist and speak incompatible HTTP contracts:
 To tell them apart, probe both port ranges:
 
 ```bash
-for p in $(seq 8080 8089); do curl -sS -w " [%{http_code}] <- $p\n" "http://127.0.0.1:$p/version"; done
-for p in $(seq 6643 6652); do curl -sS -w " [%{http_code}] <- $p\n" "http://127.0.0.1:$p/device/date"; done
+for p in $(seq 8080 8089); do curl -sS --max-time 3 -w " [%{http_code}] <- $p\n" "http://127.0.0.1:$p/version"; done
+for p in $(seq 6643 6652); do curl -sS --max-time 3 -w " [%{http_code}] <- $p\n" "http://127.0.0.1:$p/device/date"; done
 ```
 
 Each line prints the response body followed by the HTTP status; `[000]` means
