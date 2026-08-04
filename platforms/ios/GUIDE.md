@@ -121,10 +121,17 @@ Interpret the responses:
 - Anything else (404, HTML, connection refused) means an unrelated server or
   no server.
 
-If only the `mobilerun-ios --local` server is running, do not point
+`/version` does not say which device a server serves. On a host with several
+attached devices, correlate first: `pgrep -af mobilerun-ios` shows the UDIDs
+the server was started with (none when it auto-discovered devices), and its
+startup log prints the device behind each URL. If ownership stays unclear,
+ask the user.
+
+If the `mobilerun-ios --local` server serves the target device, do not point
 `backend="local-ios-http"` at it and do not start a second portal next to it.
 Report that `mobilerun_core` cannot drive it and ask the user whether to start
-the Portal app instead.
+the Portal app instead. A server that serves only other devices does not
+block Portal app setup for the target device.
 
 ## Capability Classification
 

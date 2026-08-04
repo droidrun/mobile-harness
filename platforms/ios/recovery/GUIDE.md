@@ -34,15 +34,20 @@ no HTTP response at all.
 
 If a `/version` body's `result` field starts with `iosportal(`, a
 `mobilerun-ios --local` server is running; `backend="local-ios-http"` cannot
-connect to it. Do not start a second portal next to it. Report the mismatch
-and ask the user whether to switch to the Portal app. A 401/403 is ambiguous
+connect to it. `/version` does not say which device it serves. On a
+multi-device host, correlate first: `pgrep -af mobilerun-ios` shows the UDIDs
+the server was started with, and its startup log prints the device behind
+each URL. When it serves the target device, do not start a second portal next
+to it; report the mismatch and ask the user whether to switch to the Portal
+app. When ownership stays unclear, ask the user. A 401/403 is ambiguous
 (token-protected `mobilerun-ios --local` or a forwarded Android Portal); ask
 the user which server owns the port.
 
-Continue with Setup Recovery only when no port returned a portal-shaped
-response: no `iosportal(` `/version` result, no 401/403, and no `/device/date`
-body with a `date` field. Unrelated HTTP answers (404, HTML) do not block
-Setup Recovery.
+Continue with Setup Recovery when no port returned a portal-shaped response
+(no `iosportal(` `/version` result, no 401/403, and no `/device/date` body
+with a `date` field), or when every `iosportal(` hit serves a device other
+than the target. Unrelated HTTP answers (404, HTML) do not block Setup
+Recovery.
 
 ## Setup Recovery
 
