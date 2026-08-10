@@ -2,6 +2,10 @@
   <img src="assets/mobile-harness-logo.png" alt="Mobile Harness" width="900" />
 </p>
 
+<p align="center">
+  <a href="https://mobilerun.ai"><img src="https://img.shields.io/badge/Scale%20with-Mobilerun-FFB000?style=for-the-badge" alt="Scale with Mobilerun" /></a>
+</p>
+
 > Portable operating instructions for AI agents controlling Android and iOS devices—locally or in the cloud.
 
 Mobile Harness is a compact Markdown harness, not an agent runtime. Its primary
