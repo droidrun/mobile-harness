@@ -35,5 +35,8 @@ local backends.
    there by `AGENTS.md` or the platform guide. For an in-app action failure or
    a dialog/permission prompt (not a connectivity failure), that means
    `core/debugging/GUIDE.md` or `core/blockers/GUIDE.md`.
+6. After any tracked file you load, read the same path under `local/` if it
+   exists. That is the user's own copy and it wins on conflict. See
+   `local/README.md`.
 
 For setup and runtime registration, read `install.md`.

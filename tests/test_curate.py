@@ -114,6 +114,42 @@ def test_find_memory_splits_apps_vs_freeform():
         assert freeform[0][1] is None, "freeform memory files must not get an app_id"
 
 
+def test_local_overlay_is_never_scanned_or_promoted():
+    """local/ holds the user's own cards -- private apps, internal builds,
+    personal overrides. Those must never reach a shared core/ promotion, no
+    matter how many of them carry a generalizable tag. find_cards() walks
+    <harness>/apps specifically, so the overlay is invisible by construction;
+    this pins that down before someone widens the glob to rglob("CARD.md").
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        harness = make_harness(Path(tmp), n_tagged_cards=0)
+        # Three local cards, all tagged -- enough to cross any threshold if seen.
+        for i in range(3):
+            d = harness / "local" / "apps" / "android" / f"com.private.app{i}"
+            d.mkdir(parents=True)
+            (d / "CARD.md").write_text(CARD_TEMPLATE.format(
+                app_id=f"com.private.app{i}",
+                flow_note="- Internal build hides the tab bar. <!-- generalizable: secret-pattern -->",
+            ))
+        (harness / "local" / "README.md").write_text("# Local Overlay\n")
+
+        card_paths = [p for _s, _a, p, _t in C.find_cards(harness)]
+        assert not any("local" in p.parts for p in card_paths), (
+            f"find_cards() reached into local/: {card_paths}"
+        )
+        mem_paths = [p for _s, _a, p, _t in C.find_memory(harness)]
+        assert not any("local" in p.parts for p in mem_paths), (
+            f"find_memory() reached into local/: {mem_paths}"
+        )
+
+        records = list(C.find_cards(harness)) + list(C.find_memory(harness))
+        tagged = C.collect_tagged(records)
+        assert "secret-pattern" not in tagged, (
+            "a tag confined to local/ became a promotion candidate; user overrides "
+            "must never be promoted into shared core/ knowledge"
+        )
+
+
 # ── collect_tagged: cards + memory combined ──────────────────────────
 
 def test_collect_tagged_counts_cards_and_memory_apps_toward_threshold():

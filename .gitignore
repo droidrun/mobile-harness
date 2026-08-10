@@ -13,6 +13,12 @@ credentials/**
 !credentials/README.md
 !credentials/TEMPLATE.md
 
+# User-owned local overlay. Mirrors a tracked path to override or extend it
+# without ever touching a tracked file, so `git pull --ff-only` keeps working.
+local/**
+!local/
+!local/README.md
+
 tmp/
 
 # Curator reports are regenerable. Run scripts/curate.py to recreate them.

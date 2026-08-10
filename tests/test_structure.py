@@ -18,6 +18,7 @@ Run:
   python3 tests/test_structure.py
 """
 import re
+import subprocess
 import sys
 import traceback
 from pathlib import Path
@@ -29,11 +30,16 @@ PLATFORMS_DIR = REPO_ROOT / "platforms"
 FRONTMATTER_RE = re.compile(r"^---\n(.*?)\n---\n", re.DOTALL)
 # Matches `core/<x>` / `core/<x>/GUIDE.md` and `platforms/<p>/GUIDE.md` /
 # `platforms/<p>/recovery/GUIDE.md`-shaped references inside backticks.
-REF_RE = re.compile(r"`((?:core|platforms|apps)/[\w./-]+)`")
+REF_RE = re.compile(r"`((?:core|platforms|apps|scripts|tests|local)/[\w./-]+)`")
 
 # Agent-owned local state, gitignored and with no fixed structure to check:
 # excluded from the repo-wide scan below.
 EXCLUDED_DIRS = {"memory", "credentials", ".curator"}
+
+# local/ is the user's own overlay: gitignored except for its README, and its
+# contents are whatever the user put there. Lint the tracked README, never the
+# user's files -- a personal card must not be able to fail the repo's tests.
+LOCAL_TRACKED = Path("local/README.md")
 
 
 def all_core_guides():
@@ -46,7 +52,23 @@ def all_repo_markdown():
         rel = path.relative_to(REPO_ROOT)
         if any(part in EXCLUDED_DIRS for part in rel.parts):
             continue
+        if rel.parts[0] == "local" and rel != LOCAL_TRACKED:
+            continue
         yield path
+
+
+def _git(*args):
+    """Run a git command in REPO_ROOT. Returns (returncode, stdout) or None if
+    git is unavailable / this isn't a checkout, so the suite still runs from a
+    plain unpacked copy."""
+    try:
+        p = subprocess.run(("git", "-C", str(REPO_ROOT)) + args,
+                           capture_output=True, text=True, timeout=15)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if p.returncode > 1:  # 128 == not a repo, etc. 0/1 are real answers.
+        return None
+    return p.returncode, p.stdout
 
 
 def test_every_core_dir_has_a_guide_not_a_skill_file():
@@ -116,6 +138,52 @@ def test_apply_target_files_exist_for_every_ux_primitive_reference_file():
     ux_dir = CORE_DIR / "mobile-ux-primitives"
     for target_file, _keywords in C.TARGET_HINTS:
         assert (ux_dir / target_file).exists(), f"curate.py targets {target_file}, but it doesn't exist under {ux_dir}"
+
+
+def test_local_overlay_is_gitignored_but_its_readme_is_not():
+    """The entire point of local/ is that a user can override or add a card
+    without ever dirtying a tracked file, so `git pull --ff-only` at session
+    start keeps fast-forwarding. That guarantee lives entirely in .gitignore,
+    so assert git's real answer rather than trusting the patterns by eye.
+    """
+    res = _git("rev-parse", "--git-dir")
+    if res is None:
+        print("       (skipped: not a git checkout)")
+        return
+
+    must_be_ignored = [
+        "local/apps/android/com.example.app/CARD.md",
+        "local/apps/ios/com.example.ios/CARD.md",
+        "local/core/memory/GUIDE.md",
+        "local/notes.md",
+    ]
+    for rel in must_be_ignored:
+        res = _git("check-ignore", "-q", rel)
+        assert res is not None and res[0] == 0, (
+            f"{rel} is NOT gitignored -- a user's local overlay would dirty the "
+            f"worktree and break `git pull --ff-only`"
+        )
+
+    res = _git("check-ignore", "-q", str(LOCAL_TRACKED))
+    assert res is not None and res[0] == 1, (
+        f"{LOCAL_TRACKED} must stay tracked -- it documents the overlay"
+    )
+
+
+def test_local_overlay_is_documented_where_agents_are_routed():
+    """An overlay nothing tells the agent to read is dead weight. AGENTS.md is
+    the entry point every runtime loads, so the routing has to be stated there.
+    """
+    agents = (REPO_ROOT / "AGENTS.md").read_text()
+    assert "local/apps/android/<package>/CARD.md" in agents, (
+        "AGENTS.md does not tell the agent to read the local/ Android card overlay"
+    )
+    assert "local/apps/ios/<bundle-id>/CARD.md" in agents, (
+        "AGENTS.md does not tell the agent to read the local/ iOS card overlay"
+    )
+    assert LOCAL_TRACKED.exists() or (REPO_ROOT / LOCAL_TRACKED).exists(), (
+        "local/README.md is missing; AGENTS.md points at it"
+    )
 
 
 # ── runner (no pytest dependency required) ───────────────────────────
