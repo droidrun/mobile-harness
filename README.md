@@ -127,11 +127,14 @@ device.start_app("com.android.settings")
 Skill-based runtimes can load `SKILL.md`; all runtimes should start with
 `AGENTS.md`. It routes agents to the smallest needed file:
 
+- `core/mobile-ux-primitives/GUIDE.md` before observing an unfamiliar screen — cross-platform, read before the platform split.
 - `platforms/android/GUIDE.md` for Android work.
 - `platforms/ios/GUIDE.md` for iOS work.
-- `platforms/<platform>/recovery/GUIDE.md` only when control fails.
+- `core/debugging/GUIDE.md` or `core/blockers/GUIDE.md` for an in-app action failure or a dialog covering the screen.
+- `platforms/<platform>/recovery/GUIDE.md` only when a connectivity/setup/state-extraction failure occurs.
 - the credentials guide under `core/credentials` only when a credential or human-gated screen appears.
 - `core/memory/GUIDE.md` only when reading or writing local agent-owned memory.
+- `core/learn-from-tutorial/GUIDE.md` when the current screen turns out to be the app's own tutorial or onboarding walkthrough.
 - `apps/android/<package>/CARD.md` or `apps/ios/<bundle-id>/CARD.md` only for the foreground app.
 - `UPDATE.md` only when the session-start `git pull --ff-only` fails.
 
