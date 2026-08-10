@@ -1,8 +1,12 @@
-# mobile-harness
+<p align="center">
+  <img src="assets/mobile-harness-logo.png" alt="Mobile Harness" width="900" />
+</p>
 
-Portable mobile operating instructions for AI agents that control Android and/or iOS devices. Local and in cloud.
+> Portable operating instructions for AI agents controlling Android and iOS devices—locally or in the cloud.
 
-The repository is a small Markdown harness. The primary control path is the Python `mobilerun_core` and optional client apps.
+Mobile Harness is a compact Markdown harness, not an agent runtime. Its primary
+control path is Python's `mobilerun_core`, with optional client apps where
+needed.
 
 ## Agent Setup Prompt
 
