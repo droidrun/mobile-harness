@@ -181,8 +181,28 @@ def test_local_overlay_is_documented_where_agents_are_routed():
     assert "local/apps/ios/<bundle-id>/CARD.md" in agents, (
         "AGENTS.md does not tell the agent to read the local/ iOS card overlay"
     )
-    assert LOCAL_TRACKED.exists() or (REPO_ROOT / LOCAL_TRACKED).exists(), (
+    assert (REPO_ROOT / LOCAL_TRACKED).exists(), (
         "local/README.md is missing; AGENTS.md points at it"
+    )
+
+
+def test_local_overlay_is_documented_where_users_look():
+    """local/ is a feature for humans, so agent-facing routing is not enough:
+    a user reading README.md front to back has to learn it exists. This was a
+    real miss -- the overlay shipped documented only in AGENTS.md, SKILL.md,
+    apps/index.md, and local/README.md, i.e. nowhere a user would look first.
+    """
+    readme = (REPO_ROOT / "README.md").read_text()
+    assert "local/" in readme, (
+        "README.md never mentions local/ -- a user reading the docs would never "
+        "learn the overlay exists"
+    )
+    assert "local/README.md" in readme, (
+        "README.md should point at local/README.md for the full overlay rules"
+    )
+    assert "--ff-only" in readme, (
+        "README.md should say why the overlay exists: editing a tracked file "
+        "breaks the session-start `git pull --ff-only`"
     )
 
 
