@@ -15,6 +15,13 @@ credentials/**
 
 tmp/
 
-# Local QA helpers and experiments. The harness product is Markdown-only.
-scripts/
-tests/
+# Curator reports are regenerable. Run scripts/curate.py to recreate them.
+.curator/
+
+# Secrets, just in case.
+.env
+
+# scripts/ and tests/ are tracked: the curator and its test suite ship with the
+# harness. Only their build artifacts are ignored.
+scripts/__pycache__/
+tests/__pycache__/
