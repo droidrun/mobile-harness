@@ -1,0 +1,49 @@
+name: tests
+
+# The suite guards things that are easy to break by hand and invisible in review:
+# that every core guide's cross-references resolve, that the curator can still see
+# the `generalizable` tags in the shipped cards, and that no unreviewed curator
+# draft block reaches core/. All of that only helps if it runs without being asked.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Stdlib-only, no install step. 3.9 is the verified floor; 3.13 is current.
+        # The pair catches syntax that quietly needs a newer interpreter than a
+        # contributor happens to be running.
+        python-version: ["3.9", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # Separate steps so a failure in one still reports the other.
+      - name: Repo structure
+        run: python tests/test_structure.py
+
+      - name: Curator
+        run: python tests/test_curate.py
+
+      - name: Curator report-only run leaves the tree clean
+        # test_curate covers this against fixtures; this runs it against the real
+        # repo, where a stray write would land in a tracked guide.
+        run: |
+          python scripts/curate.py --harness . --out "$RUNNER_TEMP/curator-report"
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::curate.py modified the working tree without --apply"
+            git status --porcelain
+            exit 1
+          fi
