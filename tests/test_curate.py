@@ -150,6 +150,76 @@ def test_local_overlay_is_never_scanned_or_promoted():
         )
 
 
+# ── bullet parsing: where the marker actually lands ──────────────────
+
+def test_marker_on_wrapped_continuation_line_is_found():
+    """Real CARD bullets wrap, and the marker ends up on the second line. A
+    first-line-only regex dropped the tag silently, so the pattern quietly fell
+    below the app threshold instead of erroring — which is exactly what had
+    happened to infinite-scroll-no-pagination across three shipped cards.
+    """
+    text = ("## Flow Notes\n"
+            "- Results use infinite scroll. Keep scrolling until the collected count stops\n"
+            "  growing; there is no next-page control. <!-- generalizable: inf-scroll -->\n")
+    bullets = C.extract_bullets_by_section(text)["Flow Notes"]
+    assert len(bullets) == 1, f"wrapped bullet was split: {bullets}"
+    assert C.GENERALIZABLE_RE.search(bullets[0]), "marker on the wrapped line was dropped"
+
+
+def test_marker_on_its_own_line_attaches_to_preceding_bullet():
+    text = ("- 2026-08-11: Swipe left on a row reveals delete.\n"
+            "\n"
+            "<!-- generalizable: swipe-left-reveal-delete -->\n")
+    bullets = C.extract_flat_bullets(text)["memory"]
+    tags = [C.GENERALIZABLE_RE.search(b) for b in bullets]
+    assert any(tags), "a standalone marker line found no bullet to attach to"
+
+
+def test_fenced_standalone_marker_attaches_to_preceding_bullet():
+    text = ("- 2026-08-11: Swipe left on a row reveals delete.\n"
+            "\n"
+            "```\n"
+            "<!-- generalizable: swipe-left-reveal-delete -->\n"
+            "```\n")
+    bullets = C.extract_flat_bullets(text)["memory"]
+    assert any(C.GENERALIZABLE_RE.search(b) for b in bullets)
+
+
+def test_unrelated_paragraph_does_not_glom_onto_the_bullet_above():
+    """Holding a bullet open across blank lines is what lets a detached marker
+    attach; it must not also swallow ordinary prose further down the section."""
+    text = ("## Flow Notes\n"
+            "- A short finding.\n"
+            "\n"
+            "Some unrelated prose that belongs to the section, not the bullet.\n"
+            "\n"
+            "- Another finding. <!-- generalizable: other -->\n")
+    bullets = C.extract_bullets_by_section(text)["Flow Notes"]
+    assert bullets[0] == "A short finding.", f"bullet absorbed following prose: {bullets[0]!r}"
+    assert len(bullets) == 2
+
+
+def test_real_repo_tags_are_still_discoverable():
+    """Guards the shipped cards themselves: the tag they carry must survive
+    whatever bullet formatting those files happen to use."""
+    repo = Path(__file__).resolve().parent.parent
+    cards = [t for _s, _a, _p, t in C.find_cards(repo)]
+    if not cards:
+        return  # nothing shipped yet; nothing to guard
+    tags = set()
+    for text in cards:
+        for bullets in C.extract_bullets_by_section(text).values():
+            for b in bullets:
+                m = C.GENERALIZABLE_RE.search(b)
+                if m:
+                    tags.add(m.group(1))
+    shipped = {m.group(1) for text in cards for m in C.GENERALIZABLE_RE.finditer(text)}
+    assert tags == shipped, (
+        f"tags present in shipped CARD.md files but invisible to the bullet parser: "
+        f"{sorted(shipped - tags)}"
+    )
+
+
 # ── collect_tagged: cards + memory combined ──────────────────────────
 
 def test_collect_tagged_counts_cards_and_memory_apps_toward_threshold():
@@ -202,13 +272,61 @@ def test_apply_drafts_marked_block_and_only_appends():
         assert "pull-refresh" in promotions
 
         written = C.apply_drafts(harness, promotions)
-        assert str(target_path) in written
+        assert (str(target_path), "appended") in written
 
         after = target_path.read_text()
-        assert after.startswith(before), "apply_drafts must only append, never rewrite existing prose"
+        assert after.startswith(before.rstrip("\n")), (
+            "apply_drafts must leave existing prose intact, only adding its own block"
+        )
         assert "<!-- BEGIN curator-candidate" in after
         assert "<!-- END curator-candidate -->" in after
         assert "pull-refresh" in after
+
+
+def test_apply_twice_replaces_rather_than_duplicating():
+    """The curator is meant to run periodically and deliberately leaves source
+    tags in place, so every run re-derives the same promotion. Appending
+    unconditionally made tracked core/ guides grow a duplicate block per run.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        harness = make_harness(Path(tmp), n_tagged_cards=3)
+        target_path = harness / "core" / "mobile-ux-primitives" / "content-and-feeds.md"
+        prose_before = target_path.read_text()
+
+        records = list(C.find_cards(harness)) + list(C.find_memory(harness))
+        promotions = {t: e for t, e in C.collect_tagged(records).items()
+                      if len({a for _s, a, _sec, _b in e if a}) >= 3}
+
+        assert C.apply_drafts(harness, promotions) == [(str(target_path), "appended")]
+        first = target_path.read_text()
+        assert C.apply_drafts(harness, promotions) == [(str(target_path), "replaced")]
+        second = target_path.read_text()
+
+        assert second.count("<!-- BEGIN curator-candidate") == 1, "second --apply duplicated the block"
+        assert second.count("<!-- END curator-candidate -->") == 1
+        assert second == first, "a re-run on unchanged evidence must be a no-op"
+        assert second.startswith(prose_before.rstrip("\n")), "prose above the block was disturbed"
+
+
+def test_apply_collapses_duplicate_blocks_left_by_earlier_runs():
+    """Files already carrying two stacked blocks (written before apply was
+    idempotent) must converge to one, not accumulate a third."""
+    with tempfile.TemporaryDirectory() as tmp:
+        harness = make_harness(Path(tmp), n_tagged_cards=3)
+        target_path = harness / "core" / "mobile-ux-primitives" / "content-and-feeds.md"
+        stale = ("\n<!-- BEGIN curator-candidate: review and fold into the prose above, or delete -->\n"
+                 "## Curator-suggested additions (unreviewed)\n\n- `pull-refresh` — stale\n"
+                 "<!-- END curator-candidate -->\n")
+        target_path.write_text(target_path.read_text() + stale + stale)
+
+        records = list(C.find_cards(harness)) + list(C.find_memory(harness))
+        promotions = {t: e for t, e in C.collect_tagged(records).items()
+                      if len({a for _s, a, _sec, _b in e if a}) >= 3}
+        C.apply_drafts(harness, promotions)
+
+        after = target_path.read_text()
+        assert after.count("<!-- BEGIN curator-candidate") == 1
+        assert "stale" not in after
 
 
 def test_default_run_never_writes_to_core_or_apps_or_memory():
@@ -244,6 +362,26 @@ def test_apply_flag_end_to_end_via_main():
         # apps/ must still be untouched even with --apply
         card_path = harness / "apps" / "android" / "com.app.card0" / "CARD.md"
         assert "curator-candidate" not in card_path.read_text()
+
+
+def test_sub_threshold_tagged_evidence_appears_in_the_report():
+    """Below-threshold tags used to be collected and then dropped: the report
+    looped over promotions only, so a maintainer couldn't watch evidence
+    accumulate toward the threshold, and a tag seen only in freeform memory was
+    invisible despite the header claiming otherwise."""
+    with tempfile.TemporaryDirectory() as tmp:
+        harness = make_harness(Path(tmp), n_tagged_cards=2, add_freeform_memory=True)
+        out_dir = Path(tmp) / "report-out"
+        sys.argv = ["curate.py", "--harness", str(harness), "--out", str(out_dir)]
+        C.main()
+        report = next(out_dir.glob("curator-report-*.md")).read_text()
+
+        assert "below the threshold" in report
+        below = report.split("below the threshold", 1)[1]
+        assert "pull-refresh" in below, "a 2-app tag was collected but never reported"
+        assert "session-notes" in below or "unscoped" in below, (
+            "freeform memory evidence was dropped from the report"
+        )
 
 
 def test_no_apps_or_memory_dir_exits_cleanly():

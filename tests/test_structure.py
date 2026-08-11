@@ -140,6 +140,20 @@ def test_apply_target_files_exist_for_every_ux_primitive_reference_file():
         assert (ux_dir / target_file).exists(), f"curate.py targets {target_file}, but it doesn't exist under {ux_dir}"
 
 
+def test_no_unreviewed_curator_draft_is_committed_under_core():
+    """`--apply` writes a deliberately loud, unreviewed block for a human to fold
+    in or delete. One got committed into content-and-feeds.md, which meant every
+    agent reading that guide read raw curator output as if it were guidance —
+    and the block is what the review step is supposed to consume, not ship.
+    """
+    leaked = [str(path.relative_to(REPO_ROOT)) for path in CORE_DIR.rglob("*.md")
+              if "curator-candidate" in path.read_text()]
+    assert not leaked, (
+        "unreviewed curator draft block(s) committed under core/ — fold the content "
+        "into prose or delete the block:\n  " + "\n  ".join(leaked)
+    )
+
+
 def test_local_overlay_is_gitignored_but_its_readme_is_not():
     """The entire point of local/ is that a user can override or add a card
     without ever dirtying a tracked file, so `git pull --ff-only` at session

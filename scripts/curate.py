@@ -25,8 +25,9 @@ By default this only ever emits a report — nothing under core/ or apps/ is
 touched. Pass --apply to also draft the promotion directly into the
 suggested core/mobile-ux-primitives/<file>.md, under a clearly marked
 "Curator-suggested additions (unreviewed)" section, so a human only needs to
-review/edit/remove rather than hand-copy from the report. --apply still
-never touches apps/ or removes the source tags — it only appends a draft.
+review/edit/remove rather than hand-copy from the report. --apply still never
+touches apps/ or memory/ and never removes the source tags — it only writes its
+own marked block, replacing that block on re-runs rather than stacking copies.
 
 Usage:
   python curate.py --harness /path/to/mobile-harness [--min-apps 3] [--out DIR] [--apply]
@@ -45,7 +46,17 @@ from pathlib import Path
 
 GENERALIZABLE_RE = re.compile(r"<!--\s*generalizable:\s*([\w-]+)\s*-->")
 SECTION_RE = re.compile(r"^##\s+(Useful Labels|Flow Notes|Traps)\s*$", re.MULTILINE)
-BULLET_RE = re.compile(r"^\s*-\s+(.*)$", re.MULTILINE)
+BULLET_START_RE = re.compile(r"^(\s*)-\s+(.*)$")
+ONLY_MARKER_RE = re.compile(r"^\s*<!--\s*generalizable:\s*[\w-]+\s*-->\s*$")
+FENCE_RE = re.compile(r"^\s*```")
+HEADING_RE = re.compile(r"^#{1,6}\s")
+
+# A whole curator-drafted block, so --apply can replace its own previous output
+# instead of stacking another copy on top of it.
+CANDIDATE_BLOCK_RE = re.compile(
+    r"\n*<!-- BEGIN curator-candidate.*?<!-- END curator-candidate -->[ \t]*\n?",
+    re.DOTALL,
+)
 
 # Crude keyword buckets → which core/mobile-ux-primitives reference file a promoted
 # pattern probably belongs in. First-pass heuristic; a human confirms in review.
@@ -63,6 +74,14 @@ TARGET_HINTS = [
                                     "progress indicator", "validation", "autofill", "oauth",
                                     "sso", "required field")),
 ]
+
+
+def excerpt(bullet, limit=180):
+    """One-line, length-capped view of a bullet, for sections that exist to show
+    *that* evidence exists rather than to be promoted from. Memory bullets run to
+    several hundred words each; printing them whole buries the report."""
+    text = " ".join(GENERALIZABLE_RE.sub("", bullet).split())
+    return text if len(text) <= limit else text[:limit].rstrip() + " […]"
 
 
 def guess_target_file(bullets):
@@ -102,6 +121,49 @@ def find_memory(harness: Path):
             yield "memory:freeform", None, path, path.read_text()
 
 
+def iter_bullets(text):
+    """Yield each `- ` bullet with its continuation lines folded in.
+
+    Matching only the first line of a bullet loses the `generalizable` marker in
+    the two places it most often lands: on the wrapped remainder of a long bullet,
+    and on its own line under the finding (the shape `core/learn-from-tutorial/
+    GUIDE.md` used to show). Both dropped silently — a tagged pattern would just
+    quietly fail to reach the app threshold — so fold continuations in first.
+
+    A bullet stays open across blank lines *only* for a lone marker or a code
+    fence; any other unindented content closes it, so an unrelated paragraph
+    further down the section can't glom onto the bullet above it.
+    """
+    bullets = []
+    current, indent, blank_seen = None, 0, False
+    for line in text.splitlines():
+        m = BULLET_START_RE.match(line)
+        if m:
+            if current is not None:
+                bullets.append(current)
+            indent, current, blank_seen = len(m.group(1)), m.group(2).strip(), False
+            continue
+        if current is None:
+            continue
+        stripped = line.strip()
+        if not stripped:
+            blank_seen = True
+            continue
+        if ONLY_MARKER_RE.match(line):
+            current = f"{current} {stripped}"
+            continue
+        if FENCE_RE.match(line):
+            continue  # a fenced standalone marker — skip the fence, keep the bullet open
+        if not blank_seen and not HEADING_RE.match(line) and len(line) - len(line.lstrip()) > indent:
+            current = f"{current} {stripped}"
+            continue
+        bullets.append(current)
+        current, blank_seen = None, False
+    if current is not None:
+        bullets.append(current)
+    return bullets
+
+
 def extract_bullets_by_section(text):
     """Split a CARD.md body into {section_name: [bullet_text, ...]}."""
     sections = {}
@@ -109,15 +171,14 @@ def extract_bullets_by_section(text):
     for i, m in enumerate(headers):
         start = m.end()
         end = headers[i + 1].start() if i + 1 < len(headers) else len(text)
-        body = text[start:end]
-        sections[m.group(1)] = [b.strip() for b in BULLET_RE.findall(body)]
+        sections[m.group(1)] = iter_bullets(text[start:end])
     return sections
 
 
 def extract_flat_bullets(text):
     """Memory files aren't sectioned like CARD.md — just dated bullets. Section name
     is reported as 'memory' for provenance in the output."""
-    return {"memory": [b.strip() for b in BULLET_RE.findall(text)]}
+    return {"memory": iter_bullets(text)}
 
 
 def normalize(s):
@@ -200,9 +261,15 @@ def staleness_pass(records, harness: Path):
 
 
 def apply_drafts(harness: Path, promotions: dict):
-    """Append a clearly-marked, unreviewed draft block per promoted tag to its
+    """Write a clearly-marked, unreviewed draft block per promoted tag into its
     suggested core/mobile-ux-primitives/<file>.md. Never touches apps/ or memory/,
-    never removes source tags, never overwrites existing content — only appends.
+    never removes source tags, never rewrites prose outside its own block.
+
+    Idempotent: the curator is meant to run periodically and deliberately leaves
+    source tags in place, so the same evidence promotes again on every run. If a
+    previous draft block is already in the file, replace it rather than appending
+    a second copy (and collapse any duplicates an earlier run left behind).
+    Returns [(path, "appended"|"replaced"), ...].
     """
     written = []
     by_target = defaultdict(list)
@@ -225,9 +292,17 @@ def apply_drafts(harness: Path, promotions: dict):
                 block.append(f"  - [{source}/{app_id or 'unscoped'} · {section}] "
                               f"{GENERALIZABLE_RE.sub('', bullet).strip()}")
         block.append("<!-- END curator-candidate -->")
-        with target_path.open("a") as f:
-            f.write("\n".join(block) + "\n")
-        written.append(str(target_path))
+        new_block = "\n".join(block[1:]) + "\n"  # block[0] is a spacer; add it explicitly below
+
+        text = target_path.read_text()
+        had_block = bool(CANDIDATE_BLOCK_RE.search(text))
+        # Strip every prior draft block (an earlier, non-idempotent run may have
+        # left several) and re-emit exactly one, rather than substituting in place
+        # — bullet text is arbitrary and would be read as regex backreferences.
+        text = CANDIDATE_BLOCK_RE.sub("", text).rstrip("\n") + "\n\n" + new_block
+        action = "replaced" if had_block else "appended"
+        target_path.write_text(text)
+        written.append((str(target_path), action))
     return written
 
 
@@ -256,6 +331,10 @@ def main():
     tagged = collect_tagged(records)
     promotions = {tag: entries for tag, entries in tagged.items()
                   if len({app for _s, app, _sec, _b in entries if app}) >= args.min_apps}
+    # Tagged, but not yet in enough distinct apps — including tags seen only in
+    # freeform memory. Reported separately so evidence is visible while it
+    # accumulates, instead of vanishing until the moment it crosses the threshold.
+    below_threshold = {tag: entries for tag, entries in tagged.items() if tag not in promotions}
 
     clusters = [g for g in collect_untagged_clusters(records)
                 if len({app for _s, app, _sec, _r in g}) >= args.min_apps]
@@ -272,8 +351,9 @@ def main():
         "",
         f"Scanned {len(cards_only)} CARD.md file(s) under `{harness / 'apps'}` and "
         f"{len(records) - len(cards_only)} memory file(s) under `{harness / 'memory'}`. "
-        f"Threshold: pattern seen in >= {args.min_apps} distinct apps (freeform memory "
-        f"notes with no attributable app id don't count toward this, but are still shown below).",
+        f"Threshold: pattern seen in >= {args.min_apps} distinct apps. Freeform memory "
+        f"notes with no attributable app id don't count toward that threshold; they still "
+        f"appear as evidence under whichever tag they carry.",
         "",
         "**Nothing has been written to `core/` or `apps/` unless `--apply` was passed "
         "(and even then, only as a clearly marked, unreviewed draft appended to the "
@@ -298,6 +378,18 @@ def main():
             lines.append(f"  - [{source}/{app_id or 'unscoped'} · {section}] {GENERALIZABLE_RE.sub('', bullet).strip()}")
         lines.append("")
 
+    lines += [f"## Tagged evidence below the threshold (< {args.min_apps} distinct apps — not candidates yet)", ""]
+    if not below_threshold:
+        lines.append("_None — every tag found is already a candidate above._")
+    for tag, entries in sorted(below_threshold.items()):
+        apps = sorted({f"{s}/{a}" for s, a, _sec, _b in entries if a})
+        n = len(apps)
+        lines.append(f"- `{tag}` — {n} attributable app(s)"
+                     f"{': ' + ', '.join(apps) if apps else ' (freeform memory only)'}")
+        for source, app_id, section, bullet in entries:
+            lines.append(f"  - [{source}/{app_id or 'unscoped'} · {section}] {excerpt(bullet)}")
+    lines.append("")
+
     lines += ["## Untagged near-duplicates across apps (lower confidence — verify before tagging/promoting)", ""]
     if not clusters:
         lines.append("_None found this pass._")
@@ -316,6 +408,7 @@ def main():
     report_path.write_text("\n".join(lines) + "\n")
     print(f"Wrote {report_path}")
     print(f"  {len(promotions)} tagged promotion candidate(s), "
+          f"{len(below_threshold)} tagged below threshold, "
           f"{len(clusters)} untagged cluster(s), {len(records)} file(s) scanned "
           f"({len(cards_only)} cards).")
 
@@ -323,9 +416,8 @@ def main():
         if not promotions:
             print("  --apply: nothing to draft (no promotion candidates met the threshold).")
         else:
-            written = apply_drafts(harness, promotions)
-            for path in written:
-                print(f"  --apply: appended unreviewed draft to {path}")
+            for path, action in apply_drafts(harness, promotions):
+                print(f"  --apply: {action} unreviewed draft in {path}")
 
 
 if __name__ == "__main__":
