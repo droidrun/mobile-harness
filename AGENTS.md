@@ -15,16 +15,18 @@ Do not import local drivers directly for ordinary agent work.
    dependencies. Agents should still import only `mobilerun_core`.
    Skip the pip step if the libraries are pinned. If offline, continue with the current version. On any other failure, read `UPDATE.md`.
 2. Decide the target platform before acting.
-3. For Android work, read `platforms/android/GUIDE.md`.
-4. For iOS work, read `platforms/ios/GUIDE.md`.
-5. Do not load all files.
-6. When the foreground app id is known, read only that app card if it exists:
+3. Read `core/mobile-ux-primitives/GUIDE.md` before observing an unfamiliar screen. It applies to both platforms and belongs above the platform split, not inside it — read it once you know a screen is coming, before the platform guide's own instructions.
+4. For Android work, read `platforms/android/GUIDE.md`.
+5. For iOS work, read `platforms/ios/GUIDE.md`.
+6. Do not load all files.
+7. When the foreground app id is known, read only that app card if it exists:
    - Android: `apps/android/<package>/CARD.md`
    - iOS: `apps/ios/<bundle-id>/CARD.md`
-7. Read platform recovery only after a control, setup, state, or connectivity failure.
-8. Read the credentials guide under `core/credentials` when a screen asks for login, API keys, OTP, 2FA, payment, passcode, or other secrets.
-9. Write to `credentials/<app-id>.md` only when the user explicitly asks for local credential files.
-10. Read `core/memory/GUIDE.md` before reading or writing files under `memory/`.
+   Then read the same path under `local/` if it exists (`local/apps/android/<package>/CARD.md`, `local/apps/ios/<bundle-id>/CARD.md`). That file is the user's own, and it wins wherever it disagrees with the shipped card. It may be the only card that exists — the user's private or internal apps live there. Read `local/README.md` before writing anything under `local/`.
+8. Read platform recovery only after a connectivity, setup, or state-extraction failure. For an in-app action that didn't produce the expected result, or a dialog/permission prompt covering the screen, read `core/debugging/GUIDE.md` or `core/blockers/GUIDE.md` first — those are not connectivity problems.
+9. Read the credentials guide under `core/credentials` when a screen asks for login, API keys, OTP, 2FA, payment, passcode, or other secrets.
+10. Write to `credentials/<app-id>.md` only when the user explicitly asks for local credential files.
+11. Read `core/memory/GUIDE.md` before reading or writing files under `memory/`.
 
 ## Non-Negotiables
 
@@ -37,6 +39,7 @@ Do not import local drivers directly for ordinary agent work.
 - Stop on credentials, payment, or destructive consent. Continue only if the user explicitly authorized the exact action; otherwise ask the user.
 - Store durable operational facts or useful information for the subsequent runs in `memory/` only after reading `core/memory/GUIDE.md`.
 - Store credentials in `credentials/` only if the user explicitly asks for local credential files.
+- Treat `local/` as user-owned and authoritative: it outranks the tracked file it mirrors. Write there only when the user asks for a local customization, and never move its content into a tracked file without asking — it is deliberately not shared.
 
 ## Platform Routing
 

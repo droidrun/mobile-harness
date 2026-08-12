@@ -1,0 +1,73 @@
+name: tests
+
+# The suite guards things that are easy to break by hand and invisible in review:
+# that every core guide's cross-references resolve, that the curator can still see
+# the `generalizable` tags in the shipped cards, and that no unreviewed curator
+# draft block reaches core/. All of that only helps if it runs without being asked.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Stdlib-only, no install step. 3.9 is the verified floor; 3.13 is current.
+        # The pair catches syntax that quietly needs a newer interpreter than a
+        # contributor happens to be running.
+        python-version: ["3.9", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # Separate steps, each running even if an earlier one failed, so a single
+      # run reports every regression instead of only the first. `!cancelled()`
+      # rather than `always()`: a cancelled run should stop, not push on. The job
+      # still fails if any step fails.
+      - name: Repo structure
+        run: python tests/test_structure.py
+
+      - name: Curator
+        if: ${{ !cancelled() }}
+        run: python tests/test_curate.py
+
+      - name: Curator report-only run leaves the tree clean
+        # test_curate covers this against fixtures; this runs it against the real
+        # repo, where a stray write would land in a tracked guide.
+        if: ${{ !cancelled() }}
+        run: |
+          python scripts/curate.py --harness . --out "$RUNNER_TEMP/curator-report"
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::curate.py modified the working tree without --apply"
+            git status --porcelain
+            exit 1
+          fi
+
+  # The single stable name to mark as a required check in branch protection.
+  # Requiring the matrix jobs directly means their names ("test (3.9)") are baked
+  # into repo settings: drop a Python version and its required check never
+  # reports again, blocking every merge until someone with admin notices. This
+  # job's name never changes, so the matrix stays free to change.
+  gate:
+    needs: test
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require the test matrix to have succeeded
+        # `needs.test.result` is the matrix's aggregate: success only if every leg
+        # succeeded. Checking it explicitly is what makes the gate fail on a
+        # skipped or cancelled matrix, which `needs:` alone would let through
+        # given the `!cancelled()` condition above.
+        run: |
+          echo "test matrix result: ${{ needs.test.result }}"
+          [ "${{ needs.test.result }}" = "success" ] || exit 1

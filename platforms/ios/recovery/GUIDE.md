@@ -5,7 +5,10 @@ description: Use after iOS Portal HTTP, XCTest session, state, screenshot, acces
 
 # iOS Recovery
 
-Use this only after a concrete iOS control failure.
+Use this only after a concrete connectivity, setup, or state-extraction
+failure. For an in-app action that didn't produce the expected result, read
+`core/debugging/GUIDE.md` instead — this file is about the Portal/XCTest
+connection, not action-level retry logic.
 
 ## Classify The Failure
 
@@ -13,8 +16,9 @@ Use this only after a concrete iOS control failure.
 - **Portal server exited**: requests start failing after earlier success, usually because the XCTest runner stopped.
 - **State extraction failure**: `/state` returns HTTP 200 but required state fields are missing or repeatedly empty while the UI is stable.
 - **Screenshot failure**: `/vision/screenshot` is non-PNG, zero bytes, or times out.
-- **Input failed**: tap/type returns success but the UI did not change.
-- **App blocked**: Crash or frozen UI.
+- **Input failed**: tap/type returns success but the UI did not change. If this repeats, treat it as an action failure — read `core/debugging/GUIDE.md`'s retry rules rather than continuing to retry connection-level fixes here.
+- **App blocked by a dialog or permission prompt**: read `core/blockers/GUIDE.md` to classify and clear it — this is not a connection problem.
+- **App blocked by Crash or frozen UI**: a genuine app/device problem, not covered by `core/blockers` or `core/debugging`; try relaunching the app once, then stop and report if it recurs.
 
 ## Portal Triage
 
@@ -88,14 +92,16 @@ If the port is already in use by another device's healthy portal, ask the user f
 
 ## Action Recovery
 
-After a failed tap, swipe, type, launch, or key:
+After a failed tap, swipe, type, launch, or key that isn't explained by anything above:
 
 1. Observe again with `/state`.
-2. Check whether an app changed the target.
+2. Check whether an app changed the target — a permission dialog or login screen belongs to `core/blockers` or `core/credentials`, not here.
 3. Use accessibility/state bounds when available.
 4. Use screenshot for verification.
 5. Try one alternative action.
 6. If still stuck, stop and report the exact blocker.
+
+This overlaps deliberately with `core/debugging/GUIDE.md`'s retry rules — prefer that file for anything that's clearly an in-app action problem rather than a device/backend one; use this section only when you landed here first and haven't already applied that classification.
 
 ## Credential Or Human-Gated Screens
 

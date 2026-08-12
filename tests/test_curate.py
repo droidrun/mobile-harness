@@ -1,0 +1,547 @@
+#!/usr/bin/env python3
+"""
+test_curate.py — Fixture-based tests for scripts/curate.py.
+
+Ported from autotap's tests/test_core_skills.py (the curate.py-specific
+tests), adapted for this repo's actual curate.py: find_cards/collect_tagged
+now return (source, app_id, path, text) / (source, app_id, section, bullet)
+4-tuples (source is "card:<platform>" or "memory:apps"/"memory:freeform",
+not a bare platform name), plus new coverage for the memory/ scan and the
+--apply flag that autotap's curate.py never had.
+
+No network, no mobilerun_core, no phone -- every fixture here is a fake
+mobile-harness directory built under a tempdir.
+
+Run:
+  python3 tests/test_curate.py                    # standalone, no pytest needed
+  python3 -m pytest tests/test_curate.py -v        # also works if pytest is installed
+"""
+import sys
+import tempfile
+import traceback
+from pathlib import Path
+
+# mobile-harness/tests/test_curate.py -> mobile-harness/scripts
+SCRIPTS_DIR = Path(__file__).resolve().parent.parent / "scripts"
+sys.path.insert(0, str(SCRIPTS_DIR))
+import curate as C  # noqa: E402
+
+
+# ── fixture builder ─────────────────────────────────────────────────
+
+CARD_TEMPLATE = """# {app_id} Card
+Package: `{app_id}`
+Use this card only when automating this app.
+
+## Useful Labels
+- Search icon is usually top-right.
+
+## Flow Notes
+{flow_note}
+
+## Traps
+- Never enter a password; see core/credentials.
+"""
+
+
+def make_harness(tmp: Path, n_tagged_cards=3, n_tagged_memory_apps=0, add_freeform_memory=False):
+    """Build a fake mobile-harness tree under tmp. Returns the harness root.
+
+    n_tagged_cards: how many apps/android/<id>/CARD.md get the
+      `generalizable: pull-refresh` tag.
+    n_tagged_memory_apps: how many memory/apps/<id>.md get the same tag
+      (distinct app ids from the card ones, so a test can control whether
+      the combined card+memory count crosses --min-apps on its own).
+    add_freeform_memory: adds one memory/*.md file NOT under memory/apps/,
+      tagged, to exercise the "reported but not counted" path.
+    """
+    harness = tmp / "harness"
+    (harness / "apps" / "android").mkdir(parents=True)
+    (harness / "memory" / "apps").mkdir(parents=True)
+    (harness / "core" / "mobile-ux-primitives").mkdir(parents=True)
+    (harness / "core" / "mobile-ux-primitives" / "content-and-feeds.md").write_text(
+        "# Content & Feeds\n\n## Pull to refresh\n(placeholder)\n"
+    )
+
+    tagged_bullet = ("- Pulling down on a feed triggers a refresh spinner before new content "
+                      "loads. <!-- generalizable: pull-refresh -->")
+    plain_bullet = "- Pulling down on a feed triggers a refresh spinner before new content loads."
+
+    card_apps = [f"com.app.card{i}" for i in range(4)]
+    for i, app_id in enumerate(card_apps):
+        app_dir = harness / "apps" / "android" / app_id
+        app_dir.mkdir(parents=True)
+        flow_note = tagged_bullet if i < n_tagged_cards else plain_bullet
+        (app_dir / "CARD.md").write_text(CARD_TEMPLATE.format(app_id=app_id, flow_note=flow_note))
+
+    memory_apps = [f"com.app.memory{i}" for i in range(3)]
+    for i, app_id in enumerate(memory_apps[:n_tagged_memory_apps]):
+        (harness / "memory" / "apps" / f"{app_id}.md").write_text(
+            f"- 2026-07-17: Pulling down on a feed triggers a refresh spinner. "
+            f"<!-- generalizable: pull-refresh --> Source: observed. Confidence: observed.\n"
+        )
+
+    if add_freeform_memory:
+        (harness / "memory" / "session-notes.md").write_text(
+            "- 2026-07-17: Saw the same refresh pattern across a few apps today. "
+            "<!-- generalizable: pull-refresh --> Source: observed. Confidence: unverified.\n"
+        )
+
+    return harness
+
+
+# ── find_cards / find_memory ─────────────────────────────────────────
+
+def test_find_cards_returns_card_prefixed_source():
+    with tempfile.TemporaryDirectory() as tmp:
+        harness = make_harness(Path(tmp), n_tagged_cards=3)
+        cards = list(C.find_cards(harness))
+        assert len(cards) == 4
+        assert all(source == "card:android" for source, *_r in cards)
+
+
+def test_find_memory_splits_apps_vs_freeform():
+    with tempfile.TemporaryDirectory() as tmp:
+        harness = make_harness(Path(tmp), n_tagged_memory_apps=2, add_freeform_memory=True)
+        records = list(C.find_memory(harness))
+        by_source = {r[0] for r in records}
+        assert by_source == {"memory:apps", "memory:freeform"}
+        apps_records = [r for r in records if r[0] == "memory:apps"]
+        assert len(apps_records) == 2
+        assert all(app_id is not None for _s, app_id, _p, _t in apps_records)
+        freeform = [r for r in records if r[0] == "memory:freeform"]
+        assert len(freeform) == 1
+        assert freeform[0][1] is None, "freeform memory files must not get an app_id"
+
+
+def test_local_overlay_is_never_scanned_or_promoted():
+    """local/ holds the user's own cards -- private apps, internal builds,
+    personal overrides. Those must never reach a shared core/ promotion, no
+    matter how many of them carry a generalizable tag. find_cards() walks
+    <harness>/apps specifically, so the overlay is invisible by construction;
+    this pins that down before someone widens the glob to rglob("CARD.md").
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        harness = make_harness(Path(tmp), n_tagged_cards=0)
+        # Three local cards, all tagged -- enough to cross any threshold if seen.
+        for i in range(3):
+            d = harness / "local" / "apps" / "android" / f"com.private.app{i}"
+            d.mkdir(parents=True)
+            (d / "CARD.md").write_text(CARD_TEMPLATE.format(
+                app_id=f"com.private.app{i}",
+                flow_note="- Internal build hides the tab bar. <!-- generalizable: secret-pattern -->",
+            ))
+        (harness / "local" / "README.md").write_text("# Local Overlay\n")
+
+        card_paths = [p for _s, _a, p, _t in C.find_cards(harness)]
+        assert not any("local" in p.parts for p in card_paths), (
+            f"find_cards() reached into local/: {card_paths}"
+        )
+        mem_paths = [p for _s, _a, p, _t in C.find_memory(harness)]
+        assert not any("local" in p.parts for p in mem_paths), (
+            f"find_memory() reached into local/: {mem_paths}"
+        )
+
+        records = list(C.find_cards(harness)) + list(C.find_memory(harness))
+        tagged = C.collect_tagged(records)
+        assert "secret-pattern" not in tagged, (
+            "a tag confined to local/ became a promotion candidate; user overrides "
+            "must never be promoted into shared core/ knowledge"
+        )
+
+
+# ── bullet parsing: where the marker actually lands ──────────────────
+
+def test_marker_on_wrapped_continuation_line_is_found():
+    """Real CARD bullets wrap, and the marker ends up on the second line. A
+    first-line-only regex dropped the tag silently, so the pattern quietly fell
+    below the app threshold instead of erroring — which is exactly what had
+    happened to infinite-scroll-no-pagination across three shipped cards.
+    """
+    text = ("## Flow Notes\n"
+            "- Results use infinite scroll. Keep scrolling until the collected count stops\n"
+            "  growing; there is no next-page control. <!-- generalizable: inf-scroll -->\n")
+    bullets = C.extract_bullets_by_section(text)["Flow Notes"]
+    assert len(bullets) == 1, f"wrapped bullet was split: {bullets}"
+    assert C.GENERALIZABLE_RE.search(bullets[0]), "marker on the wrapped line was dropped"
+
+
+def test_marker_on_its_own_line_attaches_to_preceding_bullet():
+    text = ("- 2026-08-11: Swipe left on a row reveals delete.\n"
+            "\n"
+            "<!-- generalizable: swipe-left-reveal-delete -->\n")
+    bullets = C.extract_flat_bullets(text)["memory"]
+    tags = [C.GENERALIZABLE_RE.search(b) for b in bullets]
+    assert any(tags), "a standalone marker line found no bullet to attach to"
+
+
+def test_fenced_standalone_marker_attaches_to_preceding_bullet():
+    text = ("- 2026-08-11: Swipe left on a row reveals delete.\n"
+            "\n"
+            "```\n"
+            "<!-- generalizable: swipe-left-reveal-delete -->\n"
+            "```\n")
+    bullets = C.extract_flat_bullets(text)["memory"]
+    assert any(C.GENERALIZABLE_RE.search(b) for b in bullets)
+
+
+def test_unrelated_paragraph_does_not_glom_onto_the_bullet_above():
+    """Holding a bullet open across blank lines is what lets a detached marker
+    attach; it must not also swallow ordinary prose further down the section."""
+    text = ("## Flow Notes\n"
+            "- A short finding.\n"
+            "\n"
+            "Some unrelated prose that belongs to the section, not the bullet.\n"
+            "\n"
+            "- Another finding. <!-- generalizable: other -->\n")
+    bullets = C.extract_bullets_by_section(text)["Flow Notes"]
+    assert bullets[0] == "A short finding.", f"bullet absorbed following prose: {bullets[0]!r}"
+    assert len(bullets) == 2
+
+
+def test_real_repo_tags_are_still_discoverable():
+    """Guards the shipped cards themselves: the tag they carry must survive
+    whatever bullet formatting those files happen to use."""
+    repo = Path(__file__).resolve().parent.parent
+    cards = [t for _s, _a, _p, t in C.find_cards(repo)]
+    if not cards:
+        return  # nothing shipped yet; nothing to guard
+    tags = set()
+    for text in cards:
+        for bullets in C.extract_bullets_by_section(text).values():
+            for b in bullets:
+                m = C.GENERALIZABLE_RE.search(b)
+                if m:
+                    tags.add(m.group(1))
+    shipped = {m.group(1) for text in cards for m in C.GENERALIZABLE_RE.finditer(text)}
+    assert tags == shipped, (
+        f"tags present in shipped CARD.md files but invisible to the bullet parser: "
+        f"{sorted(shipped - tags)}"
+    )
+
+
+# ── collect_tagged: cards + memory combined ──────────────────────────
+
+def test_collect_tagged_counts_cards_and_memory_apps_toward_threshold():
+    with tempfile.TemporaryDirectory() as tmp:
+        # 2 tagged cards + 1 tagged memory/apps file = 3 distinct apps, meets default threshold.
+        harness = make_harness(Path(tmp), n_tagged_cards=2, n_tagged_memory_apps=1)
+        records = list(C.find_cards(harness)) + list(C.find_memory(harness))
+        tagged = C.collect_tagged(records)
+        assert "pull-refresh" in tagged
+        distinct_apps = {app for _s, app, _sec, _b in tagged["pull-refresh"] if app}
+        assert len(distinct_apps) == 3
+
+
+def test_collect_tagged_freeform_memory_excluded_from_app_count():
+    with tempfile.TemporaryDirectory() as tmp:
+        # Only 2 real apps tag it; the freeform file also mentions it but must not
+        # push the distinct-app count over the threshold on its own.
+        harness = make_harness(Path(tmp), n_tagged_cards=2, add_freeform_memory=True)
+        records = list(C.find_cards(harness)) + list(C.find_memory(harness))
+        tagged = C.collect_tagged(records)
+        distinct_apps = {app for _s, app, _sec, _b in tagged["pull-refresh"] if app}
+        assert len(distinct_apps) == 2, "freeform memory (app_id=None) must not count as a distinct app"
+        # but it should still be present in the raw entries, for visibility in the report
+        all_entries = tagged["pull-refresh"]
+        assert any(app is None for _s, app, _sec, _b in all_entries)
+
+
+def test_promotion_threshold_respected():
+    with tempfile.TemporaryDirectory() as tmp:
+        harness = make_harness(Path(tmp), n_tagged_cards=2)  # below default min-apps=3
+        records = list(C.find_cards(harness)) + list(C.find_memory(harness))
+        tagged = C.collect_tagged(records)
+        promotions = {t: e for t, e in tagged.items()
+                      if len({a for _s, a, _sec, _b in e if a}) >= 3}
+        assert "pull-refresh" not in promotions
+
+
+# ── --apply: drafting into core/mobile-ux-primitives/<file>.md ──────
+
+def test_apply_drafts_marked_block_and_only_appends():
+    with tempfile.TemporaryDirectory() as tmp:
+        harness = make_harness(Path(tmp), n_tagged_cards=3)
+        target_path = harness / "core" / "mobile-ux-primitives" / "content-and-feeds.md"
+        before = target_path.read_text()
+
+        records = list(C.find_cards(harness)) + list(C.find_memory(harness))
+        tagged = C.collect_tagged(records)
+        promotions = {t: e for t, e in tagged.items()
+                      if len({a for _s, a, _sec, _b in e if a}) >= 3}
+        assert "pull-refresh" in promotions
+
+        written = C.apply_drafts(harness, promotions)
+        assert (str(target_path), "appended") in written
+
+        after = target_path.read_text()
+        assert after.startswith(before.rstrip("\n")), (
+            "apply_drafts must leave existing prose intact, only adding its own block"
+        )
+        assert "<!-- BEGIN curator-candidate" in after
+        assert "<!-- END curator-candidate -->" in after
+        assert "pull-refresh" in after
+
+
+def test_apply_twice_replaces_rather_than_duplicating():
+    """The curator is meant to run periodically and deliberately leaves source
+    tags in place, so every run re-derives the same promotion. Appending
+    unconditionally made tracked core/ guides grow a duplicate block per run.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        harness = make_harness(Path(tmp), n_tagged_cards=3)
+        target_path = harness / "core" / "mobile-ux-primitives" / "content-and-feeds.md"
+        prose_before = target_path.read_text()
+
+        records = list(C.find_cards(harness)) + list(C.find_memory(harness))
+        promotions = {t: e for t, e in C.collect_tagged(records).items()
+                      if len({a for _s, a, _sec, _b in e if a}) >= 3}
+
+        assert C.apply_drafts(harness, promotions) == [(str(target_path), "appended")]
+        first = target_path.read_text()
+        assert C.apply_drafts(harness, promotions) == [(str(target_path), "replaced")]
+        second = target_path.read_text()
+
+        assert second.count("<!-- BEGIN curator-candidate") == 1, "second --apply duplicated the block"
+        assert second.count("<!-- END curator-candidate -->") == 1
+        assert second == first, "a re-run on unchanged evidence must be a no-op"
+        assert second.startswith(prose_before.rstrip("\n")), "prose above the block was disturbed"
+
+
+def test_apply_collapses_duplicate_blocks_left_by_earlier_runs():
+    """Files already carrying two stacked blocks (written before apply was
+    idempotent) must converge to one, not accumulate a third."""
+    with tempfile.TemporaryDirectory() as tmp:
+        harness = make_harness(Path(tmp), n_tagged_cards=3)
+        target_path = harness / "core" / "mobile-ux-primitives" / "content-and-feeds.md"
+        stale = ("\n<!-- BEGIN curator-candidate: review and fold into the prose above, or delete -->\n"
+                 "## Curator-suggested additions (unreviewed)\n\n- `pull-refresh` — stale\n"
+                 "<!-- END curator-candidate -->\n")
+        target_path.write_text(target_path.read_text() + stale + stale)
+
+        records = list(C.find_cards(harness)) + list(C.find_memory(harness))
+        promotions = {t: e for t, e in C.collect_tagged(records).items()
+                      if len({a for _s, a, _sec, _b in e if a}) >= 3}
+        C.apply_drafts(harness, promotions)
+
+        after = target_path.read_text()
+        assert after.count("<!-- BEGIN curator-candidate") == 1
+        assert "stale" not in after
+
+
+def test_apply_removes_a_block_whose_evidence_no_longer_promotes():
+    """Evidence goes away: a tag is removed, a card is deleted, --min-apps is
+    raised. The block an earlier run wrote would otherwise stay in a tracked
+    guide forever, read as guidance, describing a pattern the curator no longer
+    stands behind."""
+    with tempfile.TemporaryDirectory() as tmp:
+        harness = make_harness(Path(tmp), n_tagged_cards=3)
+        target_path = harness / "core" / "mobile-ux-primitives" / "content-and-feeds.md"
+        prose = target_path.read_text()
+
+        records = list(C.find_cards(harness)) + list(C.find_memory(harness))
+        promotions = {t: e for t, e in C.collect_tagged(records).items()
+                      if len({a for _s, a, _sec, _b in e if a}) >= 3}
+        C.apply_drafts(harness, promotions)
+        assert "curator-candidate" in target_path.read_text()
+
+        # Evidence disappears entirely; the block must go with it.
+        assert C.apply_drafts(harness, {}) == [(str(target_path), "removed")]
+        after = target_path.read_text()
+        assert "curator-candidate" not in after
+        assert after.startswith(prose.rstrip("\n")), "sweep disturbed prose it doesn't own"
+
+
+def test_apply_with_no_promotions_still_sweeps_via_main():
+    """The --apply branch used to skip apply_drafts entirely when nothing met the
+    threshold, so a stale block survived exactly the run that should clear it."""
+    with tempfile.TemporaryDirectory() as tmp:
+        harness = make_harness(Path(tmp), n_tagged_cards=0)  # nothing can promote
+        target_path = harness / "core" / "mobile-ux-primitives" / "content-and-feeds.md"
+        target_path.write_text(
+            target_path.read_text()
+            + "\n<!-- BEGIN curator-candidate: review and fold into the prose above, or delete -->\n"
+              "## Curator-suggested additions (unreviewed)\n\n- `gone` — stale\n"
+              "<!-- END curator-candidate -->\n"
+        )
+        sys.argv = ["curate.py", "--harness", str(harness),
+                    "--out", str(Path(tmp) / "report-out"), "--apply"]
+        C.main()
+        assert "curator-candidate" not in target_path.read_text()
+
+
+def test_apply_leaves_untagged_primitive_files_alone():
+    """The sweep walks every file in the directory; it must only touch files that
+    actually carry a curator block."""
+    with tempfile.TemporaryDirectory() as tmp:
+        harness = make_harness(Path(tmp), n_tagged_cards=3)
+        ux_dir = harness / "core" / "mobile-ux-primitives"
+        bystander = ux_dir / "gestures.md"
+        bystander.write_text("# Gestures\n\nHand-written prose the curator must not touch.\n")
+        before = bystander.read_text()
+
+        records = list(C.find_cards(harness)) + list(C.find_memory(harness))
+        promotions = {t: e for t, e in C.collect_tagged(records).items()
+                      if len({a for _s, a, _sec, _b in e if a}) >= 3}
+        C.apply_drafts(harness, promotions)
+        C.apply_drafts(harness, {})
+
+        assert bystander.read_text() == before, "sweep rewrote a file with no curator block"
+
+
+# ── promoted marker: closing the loop ────────────────────────────────
+
+def _mark_promoted(harness, tag, filename="content-and-feeds.md"):
+    path = harness / "core" / "mobile-ux-primitives" / filename
+    path.write_text(path.read_text() + f"\n## Promoted prose\n<!-- promoted: {tag} -->\nText.\n")
+    return path
+
+
+def test_promoted_tag_is_not_re_proposed():
+    """Source tags stay put by design, so without a promoted marker the same
+    evidence promotes on every run forever, re-suggesting a pattern already
+    written into the file the block gets appended to."""
+    with tempfile.TemporaryDirectory() as tmp:
+        harness = make_harness(Path(tmp), n_tagged_cards=3)
+        out_dir = Path(tmp) / "out"
+
+        sys.argv = ["curate.py", "--harness", str(harness), "--out", str(out_dir), "--apply"]
+        C.main()
+        target = harness / "core" / "mobile-ux-primitives" / "content-and-feeds.md"
+        assert "curator-candidate" in target.read_text(), "expected a first-run draft"
+
+        _mark_promoted(harness, "pull-refresh")
+        sys.argv = ["curate.py", "--harness", str(harness), "--out", str(out_dir), "--apply"]
+        C.main()
+        after = target.read_text()
+        assert "curator-candidate" not in after, "a promoted tag was proposed again"
+        assert "<!-- promoted: pull-refresh -->" in after, "the sweep ate the promoted marker"
+
+
+def test_promoted_tag_does_not_fall_through_to_below_threshold():
+    """Leaving the candidate pool must not mean landing in the 'not yet' bucket:
+    a promoted tag is done, not pending."""
+    with tempfile.TemporaryDirectory() as tmp:
+        harness = make_harness(Path(tmp), n_tagged_cards=3)
+        _mark_promoted(harness, "pull-refresh")
+        out_dir = Path(tmp) / "out"
+        sys.argv = ["curate.py", "--harness", str(harness), "--out", str(out_dir)]
+        C.main()
+        report = next(out_dir.glob("curator-report-*.md")).read_text()
+
+        below = report.split("below the threshold", 1)[1]
+        assert "pull-refresh" not in below, "promoted tag reported as still pending"
+        promoted_section = report.split("Already promoted", 1)[1].split("##", 1)[0]
+        assert "pull-refresh" in promoted_section
+        assert "3 app(s)" in promoted_section, "running app count missing from the promoted entry"
+
+
+def test_promoted_marker_with_no_remaining_evidence_is_flagged():
+    """A typo'd marker would otherwise silently suppress nothing at all."""
+    with tempfile.TemporaryDirectory() as tmp:
+        harness = make_harness(Path(tmp), n_tagged_cards=0)
+        _mark_promoted(harness, "typo-tag")
+        out_dir = Path(tmp) / "out"
+        sys.argv = ["curate.py", "--harness", str(harness), "--out", str(out_dir)]
+        C.main()
+        report = next(out_dir.glob("curator-report-*.md")).read_text()
+        assert "typo-tag" in report
+        assert "no source tag carries it any more" in report
+
+
+def test_promoted_marker_only_suppresses_its_own_tag():
+    with tempfile.TemporaryDirectory() as tmp:
+        harness = make_harness(Path(tmp), n_tagged_cards=3)
+        _mark_promoted(harness, "some-other-pattern")
+        records = list(C.find_cards(harness)) + list(C.find_memory(harness))
+        promoted = C.collect_promoted(harness)
+        assert "some-other-pattern" in promoted
+        assert "pull-refresh" not in promoted, "an unrelated marker suppressed a live candidate"
+
+
+def test_default_run_never_writes_to_core_or_apps_or_memory():
+    with tempfile.TemporaryDirectory() as tmp:
+        harness = make_harness(Path(tmp), n_tagged_cards=3)
+        before = {
+            p: p.read_text() for p in harness.rglob("*")
+            if p.is_file() and any(part in ("core", "apps", "memory") for part in p.parts)
+        }
+        out_dir = Path(tmp) / "report-out"
+        sys.argv = ["curate.py", "--harness", str(harness), "--out", str(out_dir)]
+        C.main()
+        after = {
+            p: p.read_text() for p in harness.rglob("*")
+            if p.is_file() and any(part in ("core", "apps", "memory") for part in p.parts)
+        }
+        assert before == after, "without --apply, curate.py must never modify core/, apps/, or memory/"
+        reports = list(out_dir.glob("curator-report-*.md"))
+        assert len(reports) == 1
+        report_text = reports[0].read_text()
+        assert "pull-refresh" in report_text
+        assert "Nothing has been written to `core/` or `apps/`" in report_text
+
+
+def test_apply_flag_end_to_end_via_main():
+    with tempfile.TemporaryDirectory() as tmp:
+        harness = make_harness(Path(tmp), n_tagged_cards=3)
+        target_path = harness / "core" / "mobile-ux-primitives" / "content-and-feeds.md"
+        out_dir = Path(tmp) / "report-out"
+        sys.argv = ["curate.py", "--harness", str(harness), "--out", str(out_dir), "--apply"]
+        C.main()
+        assert "curator-candidate" in target_path.read_text()
+        # apps/ must still be untouched even with --apply
+        card_path = harness / "apps" / "android" / "com.app.card0" / "CARD.md"
+        assert "curator-candidate" not in card_path.read_text()
+
+
+def test_sub_threshold_tagged_evidence_appears_in_the_report():
+    """Below-threshold tags used to be collected and then dropped: the report
+    looped over promotions only, so a maintainer couldn't watch evidence
+    accumulate toward the threshold, and a tag seen only in freeform memory was
+    invisible despite the header claiming otherwise."""
+    with tempfile.TemporaryDirectory() as tmp:
+        harness = make_harness(Path(tmp), n_tagged_cards=2, add_freeform_memory=True)
+        out_dir = Path(tmp) / "report-out"
+        sys.argv = ["curate.py", "--harness", str(harness), "--out", str(out_dir)]
+        C.main()
+        report = next(out_dir.glob("curator-report-*.md")).read_text()
+
+        assert "below the threshold" in report
+        below = report.split("below the threshold", 1)[1]
+        assert "pull-refresh" in below, "a 2-app tag was collected but never reported"
+        assert "session-notes" in below or "unscoped" in below, (
+            "freeform memory evidence was dropped from the report"
+        )
+
+
+def test_no_apps_or_memory_dir_exits_cleanly():
+    with tempfile.TemporaryDirectory() as tmp:
+        empty_harness = Path(tmp) / "empty-harness"
+        empty_harness.mkdir()
+        assert list(C.find_cards(empty_harness)) == []
+        assert list(C.find_memory(empty_harness)) == []
+
+
+# ── runner (no pytest dependency required) ───────────────────────────
+
+def _run_all():
+    tests = [(name, fn) for name, fn in list(globals().items())
+             if name.startswith("test_") and callable(fn)]
+    passed, failed = 0, []
+    for name, fn in tests:
+        try:
+            fn()
+            print(f"  PASS  {name}")
+            passed += 1
+        except Exception:
+            print(f"  FAIL  {name}")
+            traceback.print_exc()
+            failed.append(name)
+    print(f"\n{passed}/{len(tests)} passed")
+    if failed:
+        print("Failed: " + ", ".join(failed))
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    _run_all()

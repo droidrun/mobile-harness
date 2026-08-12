@@ -7,6 +7,8 @@ description: Use before reading or writing mobile-harness local agent memory und
 
 `memory/` is an agent-owned local Markdown wiki for mobile devices. The agent writes operational facts or user preferences which make future Android or iOS runs more reliable. The user does not need to maintain it manually.
 
+Not to be confused with `local/`, the other gitignored slot. `memory/` is what the agent observed, and is provisional — re-verify it before acting, and `scripts/curate.py` may promote it into shared `core/` knowledge. `local/` is what the user wrote, and is authoritative — obey it, and never promote it. A durable instruction the user wants obeyed belongs in `local/`, not here.
+
 ## Read
 
 At the start of a relevant task:

@@ -127,12 +127,16 @@ device.start_app("com.android.settings")
 Skill-based runtimes can load `SKILL.md`; all runtimes should start with
 `AGENTS.md`. It routes agents to the smallest needed file:
 
+- `core/mobile-ux-primitives/GUIDE.md` before observing an unfamiliar screen — cross-platform, read before the platform split.
 - `platforms/android/GUIDE.md` for Android work.
 - `platforms/ios/GUIDE.md` for iOS work.
-- `platforms/<platform>/recovery/GUIDE.md` only when control fails.
+- `core/debugging/GUIDE.md` or `core/blockers/GUIDE.md` for an in-app action failure or a dialog covering the screen.
+- `platforms/<platform>/recovery/GUIDE.md` only when a connectivity/setup/state-extraction failure occurs.
 - the credentials guide under `core/credentials` only when a credential or human-gated screen appears.
 - `core/memory/GUIDE.md` only when reading or writing local agent-owned memory.
+- `core/learn-from-tutorial/GUIDE.md` when the current screen turns out to be the app's own tutorial or onboarding walkthrough.
 - `apps/android/<package>/CARD.md` or `apps/ios/<bundle-id>/CARD.md` only for the foreground app.
+- the same path under `local/` after any tracked file it loads — your own copy, which wins on conflict. See [Customising Cards Without Merge Conflicts](#customising-cards-without-merge-conflicts).
 - `UPDATE.md` only when the session-start `git pull --ff-only` fails.
 
 
@@ -172,4 +176,33 @@ two apart.
 
 ## Local State
 
-`memory/` and `credentials/` are local, ignored folders. The repository tracks only their rules/templates. Agents may write operational memory after reading `core/memory/GUIDE.md`.
+`local/`, `memory/`, and `credentials/` are local, ignored folders. The repository tracks only their rules/templates.
+
+| Folder | Written by | Weight |
+| --- | --- | --- |
+| `local/` | you | authoritative — the agent obeys it and never shares it |
+| `memory/` | the agent, after reading `core/memory/GUIDE.md` | provisional — re-verified before use |
+| `credentials/` | you, and only if you ask for local credential files | secrets; see the guide under `core/credentials` |
+
+## Customising Cards Without Merge Conflicts
+
+Session start runs `git pull --ff-only`, so editing a tracked file breaks your
+next update. Put your version under `local/` at the same path instead:
+
+```text
+apps/android/com.google.android.gm/CARD.md         # shipped, tracked
+local/apps/android/com.google.android.gm/CARD.md   # yours, wins on conflict
+local/apps/android/com.acme.internal/CARD.md       # yours only — private/internal apps
+```
+
+The agent reads the shipped card first, then yours, and yours wins where the
+two disagree. If only yours exists, it simply is the card — which is where
+internal builds and private apps belong.
+
+`local/` is gitignored except its README, so the pull keeps fast-forwarding
+even when upstream changes a card you have overridden. Cards are found by path,
+so there is no index to update. `scripts/curate.py` does not read `local/`,
+so nothing personal leaks into a shared promotion.
+
+Full details in `local/README.md`. Note that `git clean -xdf` deletes ignored
+files, `local/` included.

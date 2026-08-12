@@ -13,8 +13,21 @@ credentials/**
 !credentials/README.md
 !credentials/TEMPLATE.md
 
+# User-owned local overlay. Mirrors a tracked path to override or extend it
+# without ever touching a tracked file, so `git pull --ff-only` keeps working.
+local/**
+!local/
+!local/README.md
+
 tmp/
 
-# Local QA helpers and experiments. The harness product is Markdown-only.
-scripts/
-tests/
+# Curator reports are regenerable. Run scripts/curate.py to recreate them.
+.curator/
+
+# Secrets, just in case.
+.env
+
+# scripts/ and tests/ are tracked: the curator and its test suite ship with the
+# harness. Only their build artifacts are ignored.
+scripts/__pycache__/
+tests/__pycache__/
