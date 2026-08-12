@@ -26,3 +26,9 @@ Long-press-then-drag reorders list items, moves home-screen icons, or moves card
 
 ## Scroll vs. swipe ambiguity
 A vertical drag on a feed scrolls; a vertical drag on a horizontally-paged carousel (stories, image galleries within a post) may do nothing or bleed into the parent scroll. When an app has both nested horizontal and outer vertical scrolling regions, a failed gesture is often a hit-target problem, not a wrong-gesture problem — try anchoring the gesture more precisely inside the intended region.
+
+<!-- BEGIN curator-candidate: review and fold into the prose above, or delete -->
+## Curator-suggested additions (unreviewed)
+
+- `deliberately-leaked-block` — temporary, to verify CI catches this
+<!-- END curator-candidate -->
