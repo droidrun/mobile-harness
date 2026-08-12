@@ -30,16 +30,21 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # Separate steps so a failure in one still reports the other.
+      # Separate steps, each running even if an earlier one failed, so a single
+      # run reports every regression instead of only the first. `!cancelled()`
+      # rather than `always()`: a cancelled run should stop, not push on. The job
+      # still fails if any step fails.
       - name: Repo structure
         run: python tests/test_structure.py
 
       - name: Curator
+        if: ${{ !cancelled() }}
         run: python tests/test_curate.py
 
       - name: Curator report-only run leaves the tree clean
         # test_curate covers this against fixtures; this runs it against the real
         # repo, where a stray write would land in a tracked guide.
+        if: ${{ !cancelled() }}
         run: |
           python scripts/curate.py --harness . --out "$RUNNER_TEMP/curator-report"
           if [ -n "$(git status --porcelain)" ]; then

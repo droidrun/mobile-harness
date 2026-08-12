@@ -329,6 +329,66 @@ def test_apply_collapses_duplicate_blocks_left_by_earlier_runs():
         assert "stale" not in after
 
 
+def test_apply_removes_a_block_whose_evidence_no_longer_promotes():
+    """Evidence goes away: a tag is removed, a card is deleted, --min-apps is
+    raised. The block an earlier run wrote would otherwise stay in a tracked
+    guide forever, read as guidance, describing a pattern the curator no longer
+    stands behind."""
+    with tempfile.TemporaryDirectory() as tmp:
+        harness = make_harness(Path(tmp), n_tagged_cards=3)
+        target_path = harness / "core" / "mobile-ux-primitives" / "content-and-feeds.md"
+        prose = target_path.read_text()
+
+        records = list(C.find_cards(harness)) + list(C.find_memory(harness))
+        promotions = {t: e for t, e in C.collect_tagged(records).items()
+                      if len({a for _s, a, _sec, _b in e if a}) >= 3}
+        C.apply_drafts(harness, promotions)
+        assert "curator-candidate" in target_path.read_text()
+
+        # Evidence disappears entirely; the block must go with it.
+        assert C.apply_drafts(harness, {}) == [(str(target_path), "removed")]
+        after = target_path.read_text()
+        assert "curator-candidate" not in after
+        assert after.startswith(prose.rstrip("\n")), "sweep disturbed prose it doesn't own"
+
+
+def test_apply_with_no_promotions_still_sweeps_via_main():
+    """The --apply branch used to skip apply_drafts entirely when nothing met the
+    threshold, so a stale block survived exactly the run that should clear it."""
+    with tempfile.TemporaryDirectory() as tmp:
+        harness = make_harness(Path(tmp), n_tagged_cards=0)  # nothing can promote
+        target_path = harness / "core" / "mobile-ux-primitives" / "content-and-feeds.md"
+        target_path.write_text(
+            target_path.read_text()
+            + "\n<!-- BEGIN curator-candidate: review and fold into the prose above, or delete -->\n"
+              "## Curator-suggested additions (unreviewed)\n\n- `gone` — stale\n"
+              "<!-- END curator-candidate -->\n"
+        )
+        sys.argv = ["curate.py", "--harness", str(harness),
+                    "--out", str(Path(tmp) / "report-out"), "--apply"]
+        C.main()
+        assert "curator-candidate" not in target_path.read_text()
+
+
+def test_apply_leaves_untagged_primitive_files_alone():
+    """The sweep walks every file in the directory; it must only touch files that
+    actually carry a curator block."""
+    with tempfile.TemporaryDirectory() as tmp:
+        harness = make_harness(Path(tmp), n_tagged_cards=3)
+        ux_dir = harness / "core" / "mobile-ux-primitives"
+        bystander = ux_dir / "gestures.md"
+        bystander.write_text("# Gestures\n\nHand-written prose the curator must not touch.\n")
+        before = bystander.read_text()
+
+        records = list(C.find_cards(harness)) + list(C.find_memory(harness))
+        promotions = {t: e for t, e in C.collect_tagged(records).items()
+                      if len({a for _s, a, _sec, _b in e if a}) >= 3}
+        C.apply_drafts(harness, promotions)
+        C.apply_drafts(harness, {})
+
+        assert bystander.read_text() == before, "sweep rewrote a file with no curator block"
+
+
 def test_default_run_never_writes_to_core_or_apps_or_memory():
     with tempfile.TemporaryDirectory() as tmp:
         harness = make_harness(Path(tmp), n_tagged_cards=3)

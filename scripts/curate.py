@@ -269,7 +269,14 @@ def apply_drafts(harness: Path, promotions: dict):
     source tags in place, so the same evidence promotes again on every run. If a
     previous draft block is already in the file, replace it rather than appending
     a second copy (and collapse any duplicates an earlier run left behind).
-    Returns [(path, "appended"|"replaced"), ...].
+
+    The curator owns its blocks for their whole lifetime, not just while the
+    evidence holds. Evidence goes away — a tag gets removed, a card is deleted,
+    --min-apps is raised — and a block written by an earlier run would otherwise
+    sit in a tracked guide forever, read as guidance by every agent, describing a
+    pattern the curator no longer stands behind. So each run also sweeps
+    core/mobile-ux-primitives/ and drops curator blocks it isn't re-emitting.
+    Returns [(path, "appended"|"replaced"|"removed"), ...].
     """
     written = []
     by_target = defaultdict(list)
@@ -303,6 +310,19 @@ def apply_drafts(harness: Path, promotions: dict):
         action = "replaced" if had_block else "appended"
         target_path.write_text(text)
         written.append((str(target_path), action))
+
+    # Sweep: a block whose evidence no longer promotes is stale guidance, so drop it.
+    rewritten = {path for path, _action in written}
+    ux_dir = harness / "core" / "mobile-ux-primitives"
+    if ux_dir.is_dir():
+        for path in sorted(ux_dir.glob("*.md")):
+            if str(path) in rewritten:
+                continue
+            text = path.read_text()
+            if not CANDIDATE_BLOCK_RE.search(text):
+                continue
+            path.write_text(CANDIDATE_BLOCK_RE.sub("", text).rstrip("\n") + "\n")
+            written.append((str(path), "removed"))
     return written
 
 
@@ -413,11 +433,13 @@ def main():
           f"({len(cards_only)} cards).")
 
     if args.apply:
+        # Runs even with nothing to promote: the sweep still has to clear blocks
+        # left by earlier runs whose evidence has since gone away.
+        actions = apply_drafts(harness, promotions)
         if not promotions:
             print("  --apply: nothing to draft (no promotion candidates met the threshold).")
-        else:
-            for path, action in apply_drafts(harness, promotions):
-                print(f"  --apply: {action} unreviewed draft in {path}")
+        for path, action in actions:
+            print(f"  --apply: {action} unreviewed draft in {path}")
 
 
 if __name__ == "__main__":
