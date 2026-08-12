@@ -49,6 +49,15 @@ Put the marker **on the same line as the finding it describes** (a wrapped conti
 
 `scripts/curate.py` scans every `apps/*/*/CARD.md` and `memory/**/*.md` for these tags and reports patterns appearing in enough distinct apps to be worth promoting into `core/mobile-ux-primitives/*.md`. It is a periodic, human-reviewed process, never part of a task loop: it promotes nothing on its own, and `--apply` only drafts into a clearly marked block that a human still has to fold in or delete. Treat one app confirming a pattern as a data point, not a generalization — don't edit `core/mobile-ux-primitives/*.md` yourself from a single observation.
 
+Whoever folds a draft block into prose finishes by marking the tag as landed, on the line under the new heading:
+
+```markdown
+## Feeds paginate by scrolling, not by page controls
+<!-- promoted: infinite-scroll-no-pagination -->
+```
+
+Leave the `generalizable` tags in the cards and memory files where they are. They stay the evidence trail, and further apps confirming the pattern still show up in the report, now under "Already promoted" with a running app count. The `promoted` marker is only what stops the curator proposing a pattern it can already see written into the file it would append to.
+
 ## 5. What not to do
 
 - Don't copy screen content that isn't UI chrome (user data, other people's names/messages, account details) into `memory/` or a CARD, tutorial or not — same rule as everywhere else in this harness.

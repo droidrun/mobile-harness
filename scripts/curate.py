@@ -27,14 +27,22 @@ suggested core/mobile-ux-primitives/<file>.md, under a clearly marked
 "Curator-suggested additions (unreviewed)" section, so a human only needs to
 review/edit/remove rather than hand-copy from the report. --apply still never
 touches apps/ or memory/ and never removes the source tags — it only writes its
-own marked block, replacing that block on re-runs rather than stacking copies.
+own marked block, replacing that block on re-runs rather than stacking copies,
+and removing blocks whose evidence no longer promotes.
+
+Closing the loop: when a human folds a draft block into prose they add
+`<!-- promoted: <tag> -->` beside it. Source tags stay in the cards and memory
+files, so the evidence trail survives and new apps confirming the pattern still
+register — but the tag is never proposed again. Without that marker the same
+evidence promotes on every run forever, re-suggesting a pattern already written
+into the very file the block is appended to.
 
 Usage:
   python curate.py --harness /path/to/mobile-harness [--min-apps 3] [--out DIR] [--apply]
 
 Output:
   <out>/curator-report-<UTC timestamp>.md — candidate promotions + a staleness pass.
-  With --apply: also appends drafts to core/mobile-ux-primitives/<file>.md.
+  With --apply: also writes drafts into core/mobile-ux-primitives/<file>.md.
 """
 import argparse
 import difflib
@@ -45,6 +53,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 GENERALIZABLE_RE = re.compile(r"<!--\s*generalizable:\s*([\w-]+)\s*-->")
+# Written by a human into core/mobile-ux-primitives/<file>.md when they fold a
+# curator block into prose. Source tags stay put, so the evidence trail survives
+# and new apps confirming the pattern still register; the tag just stops being
+# re-proposed as though it were a fresh candidate on every run.
+PROMOTED_RE = re.compile(r"<!--\s*promoted:\s*([\w-]+)\s*-->")
 SECTION_RE = re.compile(r"^##\s+(Useful Labels|Flow Notes|Traps)\s*$", re.MULTILINE)
 BULLET_START_RE = re.compile(r"^(\s*)-\s+(.*)$")
 ONLY_MARKER_RE = re.compile(r"^\s*<!--\s*generalizable:\s*[\w-]+\s*-->\s*$")
@@ -205,6 +218,24 @@ def collect_tagged(records):
     return tagged
 
 
+def collect_promoted(harness: Path):
+    """tag -> the primitive file that claims it, for every `promoted` marker.
+
+    Promotion is the one step the curator can't do for itself: a human reads the
+    draft block, writes the prose, and marks the tag as landed. Without that
+    record the same evidence promotes forever, so every run re-proposes a pattern
+    already sitting in the file it would be added to.
+    """
+    promoted = {}
+    ux_dir = harness / "core" / "mobile-ux-primitives"
+    if not ux_dir.is_dir():
+        return promoted
+    for path in sorted(ux_dir.glob("*.md")):
+        for m in PROMOTED_RE.finditer(path.read_text()):
+            promoted.setdefault(m.group(1), path)
+    return promoted
+
+
 def collect_untagged_clusters(records, similarity_threshold=0.72):
     """Best-effort fallback: near-duplicate bullets across apps that were never tagged.
     Conservative — only flags a candidate cluster, never auto-promotes it.
@@ -349,12 +380,19 @@ def main():
         sys.exit(0)
 
     tagged = collect_tagged(records)
-    promotions = {tag: entries for tag, entries in tagged.items()
+    promoted = collect_promoted(harness)
+    # A tag a human has already folded into prose is not a candidate at any app
+    # count, so it leaves the pool before the threshold is applied rather than
+    # falling through to the below-threshold section.
+    already_promoted = {tag: entries for tag, entries in tagged.items() if tag in promoted}
+    open_tags = {tag: entries for tag, entries in tagged.items() if tag not in promoted}
+
+    promotions = {tag: entries for tag, entries in open_tags.items()
                   if len({app for _s, app, _sec, _b in entries if app}) >= args.min_apps}
     # Tagged, but not yet in enough distinct apps — including tags seen only in
     # freeform memory. Reported separately so evidence is visible while it
     # accumulates, instead of vanishing until the moment it crosses the threshold.
-    below_threshold = {tag: entries for tag, entries in tagged.items() if tag not in promotions}
+    below_threshold = {tag: entries for tag, entries in open_tags.items() if tag not in promotions}
 
     clusters = [g for g in collect_untagged_clusters(records)
                 if len({app for _s, app, _sec, _r in g}) >= args.min_apps]
@@ -373,7 +411,9 @@ def main():
         f"{len(records) - len(cards_only)} memory file(s) under `{harness / 'memory'}`. "
         f"Threshold: pattern seen in >= {args.min_apps} distinct apps. Freeform memory "
         f"notes with no attributable app id don't count toward that threshold; they still "
-        f"appear as evidence under whichever tag they carry.",
+        f"appear as evidence under whichever tag they carry. Tags marked "
+        f"`<!-- promoted: <tag> -->` in a primitive file are listed separately and never "
+        f"re-proposed, however much evidence accumulates.",
         "",
         "**Nothing has been written to `core/` or `apps/` unless `--apply` was passed "
         "(and even then, only as a clearly marked, unreviewed draft appended to the "
@@ -397,6 +437,22 @@ def main():
         for source, app_id, section, bullet in entries:
             lines.append(f"  - [{source}/{app_id or 'unscoped'} · {section}] {GENERALIZABLE_RE.sub('', bullet).strip()}")
         lines.append("")
+
+    lines += ["## Already promoted (marked in `core/mobile-ux-primitives/`, not re-proposed)", ""]
+    if not promoted:
+        lines.append("_None yet. Add `<!-- promoted: <tag> -->` beside the prose when you fold a "
+                     "draft block in, so the tag stops being re-proposed._")
+    for tag, path in sorted(promoted.items()):
+        entries = already_promoted.get(tag, [])
+        apps = sorted({f"{s}/{a}" for s, a, _sec, _b in entries if a})
+        where = path.relative_to(harness)
+        if not entries:
+            lines.append(f"- `{tag}` — in `{where}`, but no source tag carries it any more. "
+                         f"Either the evidence was removed, or the marker is a typo.")
+        else:
+            lines.append(f"- `{tag}` — in `{where}`; still tagged in {len(apps)} app(s)"
+                         f"{': ' + ', '.join(apps) if apps else ''}")
+    lines.append("")
 
     lines += [f"## Tagged evidence below the threshold (< {args.min_apps} distinct apps — not candidates yet)", ""]
     if not below_threshold:
@@ -429,6 +485,7 @@ def main():
     print(f"Wrote {report_path}")
     print(f"  {len(promotions)} tagged promotion candidate(s), "
           f"{len(below_threshold)} tagged below threshold, "
+          f"{len(promoted)} already promoted, "
           f"{len(clusters)} untagged cluster(s), {len(records)} file(s) scanned "
           f"({len(cards_only)} cards).")
 

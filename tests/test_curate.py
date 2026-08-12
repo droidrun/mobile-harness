@@ -389,6 +389,76 @@ def test_apply_leaves_untagged_primitive_files_alone():
         assert bystander.read_text() == before, "sweep rewrote a file with no curator block"
 
 
+# ── promoted marker: closing the loop ────────────────────────────────
+
+def _mark_promoted(harness, tag, filename="content-and-feeds.md"):
+    path = harness / "core" / "mobile-ux-primitives" / filename
+    path.write_text(path.read_text() + f"\n## Promoted prose\n<!-- promoted: {tag} -->\nText.\n")
+    return path
+
+
+def test_promoted_tag_is_not_re_proposed():
+    """Source tags stay put by design, so without a promoted marker the same
+    evidence promotes on every run forever, re-suggesting a pattern already
+    written into the file the block gets appended to."""
+    with tempfile.TemporaryDirectory() as tmp:
+        harness = make_harness(Path(tmp), n_tagged_cards=3)
+        out_dir = Path(tmp) / "out"
+
+        sys.argv = ["curate.py", "--harness", str(harness), "--out", str(out_dir), "--apply"]
+        C.main()
+        target = harness / "core" / "mobile-ux-primitives" / "content-and-feeds.md"
+        assert "curator-candidate" in target.read_text(), "expected a first-run draft"
+
+        _mark_promoted(harness, "pull-refresh")
+        sys.argv = ["curate.py", "--harness", str(harness), "--out", str(out_dir), "--apply"]
+        C.main()
+        after = target.read_text()
+        assert "curator-candidate" not in after, "a promoted tag was proposed again"
+        assert "<!-- promoted: pull-refresh -->" in after, "the sweep ate the promoted marker"
+
+
+def test_promoted_tag_does_not_fall_through_to_below_threshold():
+    """Leaving the candidate pool must not mean landing in the 'not yet' bucket:
+    a promoted tag is done, not pending."""
+    with tempfile.TemporaryDirectory() as tmp:
+        harness = make_harness(Path(tmp), n_tagged_cards=3)
+        _mark_promoted(harness, "pull-refresh")
+        out_dir = Path(tmp) / "out"
+        sys.argv = ["curate.py", "--harness", str(harness), "--out", str(out_dir)]
+        C.main()
+        report = next(out_dir.glob("curator-report-*.md")).read_text()
+
+        below = report.split("below the threshold", 1)[1]
+        assert "pull-refresh" not in below, "promoted tag reported as still pending"
+        promoted_section = report.split("Already promoted", 1)[1].split("##", 1)[0]
+        assert "pull-refresh" in promoted_section
+        assert "3 app(s)" in promoted_section, "running app count missing from the promoted entry"
+
+
+def test_promoted_marker_with_no_remaining_evidence_is_flagged():
+    """A typo'd marker would otherwise silently suppress nothing at all."""
+    with tempfile.TemporaryDirectory() as tmp:
+        harness = make_harness(Path(tmp), n_tagged_cards=0)
+        _mark_promoted(harness, "typo-tag")
+        out_dir = Path(tmp) / "out"
+        sys.argv = ["curate.py", "--harness", str(harness), "--out", str(out_dir)]
+        C.main()
+        report = next(out_dir.glob("curator-report-*.md")).read_text()
+        assert "typo-tag" in report
+        assert "no source tag carries it any more" in report
+
+
+def test_promoted_marker_only_suppresses_its_own_tag():
+    with tempfile.TemporaryDirectory() as tmp:
+        harness = make_harness(Path(tmp), n_tagged_cards=3)
+        _mark_promoted(harness, "some-other-pattern")
+        records = list(C.find_cards(harness)) + list(C.find_memory(harness))
+        promoted = C.collect_promoted(harness)
+        assert "some-other-pattern" in promoted
+        assert "pull-refresh" not in promoted, "an unrelated marker suppressed a live candidate"
+
+
 def test_default_run_never_writes_to_core_or_apps_or_memory():
     with tempfile.TemporaryDirectory() as tmp:
         harness = make_harness(Path(tmp), n_tagged_cards=3)
