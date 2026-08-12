@@ -52,3 +52,22 @@ jobs:
             git status --porcelain
             exit 1
           fi
+
+  # The single stable name to mark as a required check in branch protection.
+  # Requiring the matrix jobs directly means their names ("test (3.9)") are baked
+  # into repo settings: drop a Python version and its required check never
+  # reports again, blocking every merge until someone with admin notices. This
+  # job's name never changes, so the matrix stays free to change.
+  gate:
+    needs: test
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require the test matrix to have succeeded
+        # `needs.test.result` is the matrix's aggregate: success only if every leg
+        # succeeded. Checking it explicitly is what makes the gate fail on a
+        # skipped or cancelled matrix, which `needs:` alone would let through
+        # given the `!cancelled()` condition above.
+        run: |
+          echo "test matrix result: ${{ needs.test.result }}"
+          [ "${{ needs.test.result }}" = "success" ] || exit 1
