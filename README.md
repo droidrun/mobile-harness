@@ -27,7 +27,7 @@ Read `install.md` and follow the steps to install `mobile-harness`.
 - Android through `mobilerun-core` using local ADB with optional Portal, Portal HTTP-only, or cloud.
 - iOS through `mobilerun-core` using `ios-portal` HTTP or cloud.
 
-## Skill Install
+## Skill Install via npx (skills.sh)
 
 Install the harness as an agent skill with the [skills CLI](https://skills.sh):
 
