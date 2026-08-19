@@ -2,6 +2,10 @@
   <img src="assets/mobile-harness-logo.png" alt="Mobile Harness" width="900" />
 </p>
 
+<p align="center">
+  <a href="https://skills.sh/droidrun/mobile-harness"><img src="https://skills.sh/b/droidrun/mobile-harness" alt="skills.sh" /></a>
+</p>
+
 > Portable operating instructions for AI agents controlling Android and iOS devices—locally or in the cloud.
 
 Mobile Harness is a compact Markdown harness, not an agent runtime. Its primary
@@ -22,6 +26,17 @@ Read `install.md` and follow the steps to install `mobile-harness`.
 
 - Android through `mobilerun-core` using local ADB with optional Portal, Portal HTTP-only, or cloud.
 - iOS through `mobilerun-core` using `ios-portal` HTTP or cloud.
+
+## Skill Install
+
+Install the harness as an agent skill with the [skills CLI](https://skills.sh):
+
+```bash
+npx skills add droidrun/mobile-harness
+```
+
+Update an installed copy with `npx skills update` from the same project. First
+use still requires the Python setup in `install.md`.
 
 ## Manual Install
 
@@ -133,7 +148,7 @@ Skill-based runtimes can load `SKILL.md`; all runtimes should start with
 - the credentials guide under `core/credentials` only when a credential or human-gated screen appears.
 - `core/memory/GUIDE.md` only when reading or writing local agent-owned memory.
 - `apps/android/<package>/CARD.md` or `apps/ios/<bundle-id>/CARD.md` only for the foreground app.
-- `UPDATE.md` only when the session-start `git pull --ff-only` fails.
+- `UPDATE.md` only when the session-start update (`git pull --ff-only` or `npx skills update`) fails.
 
 
 ## Local Android Modes
