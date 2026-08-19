@@ -18,6 +18,9 @@ git -C <harness-root> pull --ff-only
 Handle the result:
 
 - Updated or already up to date: continue.
+- `not a git repository` (`<harness-root>` has no `.git`, for example a copy
+  installed with the skills CLI): run `npx skills update` from the project
+  where the skill was installed instead.
 - Offline or network failure: continue with the current version. Do not retry
   in a loop and do not report it as an error.
 - `Not possible to fast-forward`, diverged history, or local-changes errors:
