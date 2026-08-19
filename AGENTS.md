@@ -13,7 +13,7 @@ Do not import local drivers directly for ordinary agent work.
    The explicit `mobilerun-core-local` and `mobilerun-sdk` entries keep those
    runtime packages upgraded even when they are already satisfied transitive
    dependencies. Agents should still import only `mobilerun_core`.
-   Skip the pip step if the libraries are pinned. If offline, continue with the current version. On any other failure, read `UPDATE.md`.
+   If `<harness-root>/.venv` does not exist yet (a fresh clone or a fresh skills-CLI copy), skip this step and read `install.md` first. Skip the pip step if the libraries are pinned. Run the git pull only if `<harness-root>/.git` exists; without it (for example a copy installed with the skills CLI), `git -C` operates on an enclosing repository — run `npx skills update` from the project where the skill was installed instead. If offline, continue with the current version. On any other failure, read `UPDATE.md`.
 2. Decide the target platform before acting.
 3. For Android work, read `platforms/android/GUIDE.md`.
 4. For iOS work, read `platforms/ios/GUIDE.md`.

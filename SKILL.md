@@ -1,6 +1,6 @@
 ---
 name: mobile-harness
-description: Portable Android and iOS device-control harness for agents using mobilerun-core.
+description: Portable Android and iOS device-control harness for agents. Use when an agent needs to control or automate Android/iOS devices — tap, swipe, screenshot, app control — locally (ADB/Portal/Simulator) or on Mobilerun cloud devices.
 ---
 
 # mobile-harness

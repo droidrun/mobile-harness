@@ -9,7 +9,11 @@ symlink, resolve the real repository path first.
 
 ## Soft Update (default)
 
-Run once per session, before platform work:
+Run once per session, before platform work. First check that
+`<harness-root>/.git` exists. If it does not (for example a copy installed
+with the skills CLI), do not run the pull — `git -C` would operate on an
+enclosing repository — and run `npx skills update` from the project where
+the skill was installed instead.
 
 ```bash
 git -C <harness-root> pull --ff-only
