@@ -29,10 +29,19 @@ adb -s <serial> shell content insert --uri content://com.mobilerun.portal/toggle
 adb -s <serial> forward tcp:18080 tcp:8080
 ```
 
-If accessibility is disabled:
+If accessibility is disabled, add the Portal service without dropping services
+that are already enabled. Read the current value first:
 
 ```bash
-adb -s <serial> shell settings put secure enabled_accessibility_services com.mobilerun.portal/.service.MobilerunAccessibilityService
+adb -s <serial> shell settings get secure enabled_accessibility_services
+```
+
+If the output is empty or `null`, set the Portal service alone; if the Portal
+service is already listed, change nothing. Otherwise keep the existing value
+and append the Portal service, colon-separated:
+
+```bash
+adb -s <serial> shell settings put secure enabled_accessibility_services <existing-list>:com.mobilerun.portal/.service.MobilerunAccessibilityService
 adb -s <serial> shell settings put secure accessibility_enabled 1
 ```
 
