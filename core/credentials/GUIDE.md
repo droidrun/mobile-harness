@@ -5,7 +5,7 @@ description: Use when a mobile screen asks for login, password, API key, OTP, 2F
 
 # Mobile Credentials
 
-Default behavior: stop and ask the user if the credentials are not set or explicitly authorized.
+Default behavior: stop and ask the user unless the current action is explicitly authorized, even when the credentials are already stored.
 
 ## Credential Screens
 
