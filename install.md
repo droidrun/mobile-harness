@@ -79,8 +79,10 @@ and `credentials/`.
 
 Register the full repository as a Codex skill directory. If
 `skills/mobile-harness` already exists as a real directory (for example an
-earlier copied install), remove it first — `ln -sfn` replaces files and
-symlinks but creates the link inside a real directory:
+earlier copied install), `ln -sfn` would create the link inside it instead of
+replacing it. Before deleting that directory, move any local `credentials/`
+and `memory/` content it holds into this repository's matching folders, and
+ask the user before the deletion:
 
 ```bash
 mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
