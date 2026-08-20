@@ -37,11 +37,13 @@ adb -s <serial> shell settings get secure enabled_accessibility_services
 ```
 
 If the output is empty or `null`, set the Portal service alone; if the Portal
-service is already listed, change nothing. Otherwise keep the existing value
-and append the Portal service, colon-separated:
+service is already listed, skip the list update. Otherwise keep the existing
+value and append the Portal service, colon-separated. Single-quote the value
+and escape any `$` in service names as `\$` — both the host and device shells
+expand unquoted `$`. Always run the `accessibility_enabled 1` command:
 
 ```bash
-adb -s <serial> shell settings put secure enabled_accessibility_services <existing-list>:com.mobilerun.portal/.service.MobilerunAccessibilityService
+adb -s <serial> shell settings put secure enabled_accessibility_services '<existing-list>:com.mobilerun.portal/.service.MobilerunAccessibilityService'
 adb -s <serial> shell settings put secure accessibility_enabled 1
 ```
 
