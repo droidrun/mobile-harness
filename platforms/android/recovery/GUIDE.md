@@ -56,10 +56,11 @@ adb -s <serial> shell ime enable com.mobilerun.portal/.input.MobilerunKeyboardIM
 adb -s <serial> shell ime set com.mobilerun.portal/.input.MobilerunKeyboardIME
 ```
 
-After the recovery input is complete, restore the recorded keyboard:
+After the recovery input is complete, restore the recorded keyboard. Quote
+the id and escape any `$` as `\$`, as above:
 
 ```bash
-adb -s <serial> shell ime set <previous-ime-id>
+adb -s <serial> shell ime set '<previous-ime-id>'
 ```
 
 ## Portal HTTP Recovery
