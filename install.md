@@ -77,7 +77,10 @@ and `credentials/`.
 
 ### Codex
 
-Register the full repository as a Codex skill directory:
+Register the full repository as a Codex skill directory. If
+`skills/mobile-harness` already exists as a real directory (for example an
+earlier copied install), remove it first — `ln -sfn` replaces files and
+symlinks but creates the link inside a real directory:
 
 ```bash
 mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"

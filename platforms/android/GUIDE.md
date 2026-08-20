@@ -186,6 +186,11 @@ screenshot, and UI tree reads, connect with `Mobilerun` and call `device.*`.
 
 ## ADB-Only Fallback
 
+Raw ADB is a diagnostics and recovery path, not a control path. Even without
+Portal, normal actions go through `Mobilerun` with
+`backend="local-android-adb"`. Use these commands only when `device.*` control
+has concretely failed and you are diagnosing or recovering:
+
 ```bash
 adb -s <serial> exec-out screencap -p > screenshot.png
 adb -s <serial> exec-out uiautomator dump /dev/tty
