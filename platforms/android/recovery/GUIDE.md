@@ -47,11 +47,19 @@ adb -s <serial> shell settings put secure enabled_accessibility_services '<exist
 adb -s <serial> shell settings put secure accessibility_enabled 1
 ```
 
-If Portal keyboard input is needed:
+If Portal keyboard input is needed, record the current keyboard first so it
+can be restored:
 
 ```bash
+adb -s <serial> shell settings get secure default_input_method
 adb -s <serial> shell ime enable com.mobilerun.portal/.input.MobilerunKeyboardIME
 adb -s <serial> shell ime set com.mobilerun.portal/.input.MobilerunKeyboardIME
+```
+
+After the recovery input is complete, restore the recorded keyboard:
+
+```bash
+adb -s <serial> shell ime set <previous-ime-id>
 ```
 
 ## Portal HTTP Recovery
