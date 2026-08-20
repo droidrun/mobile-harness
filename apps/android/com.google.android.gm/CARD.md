@@ -21,4 +21,4 @@ Use this card only when Gmail is the foreground package or the task explicitly t
 
 - Inbox rows can have repeated text; verify the opened message subject after tapping.
 - Search results can lag. Observe again before acting on the first result.
-- Do not store email contents in memory unless the user explicitly asks.
+- Do not store email contents in memory.
