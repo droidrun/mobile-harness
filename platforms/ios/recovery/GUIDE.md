@@ -99,4 +99,4 @@ After a failed tap, swipe, type, launch, or key:
 
 ## Credential Or Human-Gated Screens
 
-If the blocker is Apple ID, login, passcode, OTP, API key, payment, account recovery, captcha, or consent for destructive action, read the credentials guide under `core/credentials` and, unless the current action is explicitly authorized, ask the user how to proceed, even when the credentials are already stored locally.
+If the blocker is Apple ID, login, passcode, OTP, API key, payment, account recovery, or consent for destructive action, read the credentials guide under `core/credentials` and, unless the current action is explicitly authorized, ask the user how to proceed.

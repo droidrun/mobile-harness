@@ -242,9 +242,8 @@ Do not chain many actions blindly.
 
 If the screen asks for Apple ID, username, password, OTP, 2FA, passcode,
 payment detail, or recovery code, stop. Read the credentials guide under
-`core/credentials` and, unless the current action is explicitly authorized,
-ask the user before entering or reading secrets, even secrets already stored
-locally.
+`core/credentials` and ask the user how to proceed before entering or reading
+secrets if the credentials are absent.
 
 ## App Cards
 
