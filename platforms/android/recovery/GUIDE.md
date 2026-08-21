@@ -47,6 +47,9 @@ adb -s <serial> shell settings put secure enabled_accessibility_services '<exist
 adb -s <serial> shell settings put secure accessibility_enabled 1
 ```
 
+Re-read the value after the put: Android silently drops services that are not
+installed, so a typo shows up as a missing entry, not an error.
+
 If Portal keyboard input is needed, record the current keyboard first so it
 can be restored:
 
