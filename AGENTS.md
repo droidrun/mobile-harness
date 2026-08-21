@@ -23,8 +23,8 @@ Do not import local drivers directly for ordinary agent work.
    - iOS: `apps/ios/<bundle-id>/CARD.md`
 7. Read platform recovery only after a control, setup, state, or connectivity failure.
 8. Read the credentials guide under `core/credentials` when a screen asks for login, API keys, OTP, 2FA, payment, passcode, or other secrets.
-9. Write to `credentials/<app-id>.md` only when the user explicitly asks for local credential files.
-10. Read `core/memory/GUIDE.md` before reading or writing files under `memory/`.
+9. Write to `<harness-root>/credentials/<app-id>.md` only when the user explicitly asks for local credential files.
+10. Read `core/memory/GUIDE.md` before reading or writing files under `<harness-root>/memory/`.
 
 ## Non-Negotiables
 

@@ -29,18 +29,41 @@ adb -s <serial> shell content insert --uri content://com.mobilerun.portal/toggle
 adb -s <serial> forward tcp:18080 tcp:8080
 ```
 
-If accessibility is disabled:
+If accessibility is disabled, add the Portal service without dropping services
+that are already enabled. Read the current value first:
 
 ```bash
-adb -s <serial> shell settings put secure enabled_accessibility_services com.mobilerun.portal/.service.MobilerunAccessibilityService
+adb -s <serial> shell settings get secure enabled_accessibility_services
+```
+
+If the output is empty or `null`, set the Portal service alone; if the Portal
+service is already listed, skip the list update. Otherwise keep the existing
+value and append the Portal service, colon-separated. Single-quote the value
+and escape any `$` in service names as `\$` — both the host and device shells
+expand unquoted `$`. Always run the `accessibility_enabled 1` command:
+
+```bash
+adb -s <serial> shell settings put secure enabled_accessibility_services '<existing-list>:com.mobilerun.portal/.service.MobilerunAccessibilityService'
 adb -s <serial> shell settings put secure accessibility_enabled 1
 ```
 
-If Portal keyboard input is needed:
+Re-read the value after the put: Android silently drops services that are not
+installed, so a typo shows up as a missing entry, not an error.
+
+If Portal keyboard input is needed, record the current keyboard first so it
+can be restored:
 
 ```bash
+adb -s <serial> shell settings get secure default_input_method
 adb -s <serial> shell ime enable com.mobilerun.portal/.input.MobilerunKeyboardIME
 adb -s <serial> shell ime set com.mobilerun.portal/.input.MobilerunKeyboardIME
+```
+
+After the recovery input is complete, restore the recorded keyboard. Quote
+the id and escape any `$` as `\$`, as above:
+
+```bash
+adb -s <serial> shell ime set '<previous-ime-id>'
 ```
 
 ## Portal HTTP Recovery
@@ -63,4 +86,4 @@ After a failed tap or input:
 
 ## Credential Or Human-Gated Screens
 
-If the blocker is login, API key, payment, account recovery, or consent for destructive action, read the credentials guide under `core/credentials` and ask the user.
+If the blocker is login, API key, payment, account recovery, or consent for destructive action, read the credentials guide under `core/credentials` and, unless the current action is explicitly authorized, ask the user.

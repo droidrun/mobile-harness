@@ -5,7 +5,7 @@ description: Use before reading or writing mobile-harness local agent memory und
 
 # Mobile Harness Memory
 
-`memory/` is an agent-owned local Markdown wiki for mobile devices. The agent writes operational facts or user preferences which make future Android or iOS runs more reliable. The user does not need to maintain it manually.
+`memory/` means `<harness-root>/memory/`, where `<harness-root>` is the directory containing the harness `AGENTS.md`; resolve it from the harness root, not the current working directory. It is an agent-owned local Markdown wiki for mobile devices. The agent writes operational facts or user preferences which make future Android or iOS runs more reliable. The user does not need to maintain it manually.
 
 ## Read
 
