@@ -212,7 +212,7 @@ Do not chain many actions blindly.
 
 ## Credential Gate
 
-If the screen asks for a username, password, API key, OTP, 2FA, payment detail, recovery code, or other secret, stop. Read the credentials guide under `core/credentials` and ask the user how to proceed before entering or reading secrets.
+If the screen asks for a username, password, API key, OTP, 2FA, payment detail, recovery code, or other secret, stop. Read the credentials guide under `core/credentials` and ask the user how to proceed, unless the current action is explicitly authorized.
 
 ## App Cards
 

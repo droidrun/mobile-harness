@@ -6,7 +6,7 @@ Read `core/credentials/GUIDE.md` before using anything here.
 
 Rules:
 
-- The agent must ask before reading or using a credential file.
+- The agent must ask before reading or using a credential file, unless the current action is explicitly authorized.
 - Use one file per app id: `credentials/<app-id>.md`.
 - Never commit real credentials.
 - Never copy credentials into `memory/`.
