@@ -186,11 +186,6 @@ screenshot, and UI tree reads, connect with `Mobilerun` and call `device.*`.
 
 ## ADB-Only Fallback
 
-Raw ADB is a diagnostics and recovery path, not a control path. Even without
-Portal, normal actions go through `Mobilerun` with
-`backend="local-android-adb"`. Use these commands only when `device.*` control
-has concretely failed and you are diagnosing or recovering:
-
 ```bash
 adb -s <serial> exec-out screencap -p > screenshot.png
 adb -s <serial> exec-out uiautomator dump /dev/tty
@@ -217,7 +212,7 @@ Do not chain many actions blindly.
 
 ## Credential Gate
 
-If the screen asks for a username, password, API key, OTP, 2FA, payment detail, recovery code, or other secret, stop. Read the credentials guide under `core/credentials` and, unless the current action is explicitly authorized, ask the user how to proceed.
+If the screen asks for a username, password, API key, OTP, 2FA, payment detail, recovery code, or other secret, stop. Read the credentials guide under `core/credentials` and ask the user how to proceed, unless the current action is explicitly authorized.
 
 ## App Cards
 
