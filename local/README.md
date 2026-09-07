@@ -27,19 +27,6 @@ local/apps/android/com.acme.internal/CARD.md       yours only
 Cards are found by path, not through a registry, so a local card needs no
 `apps/index.md` entry.
 
-## Migrating
-
-Earlier versions kept `memory/` and `credentials/` at the repository root. Copy
-anything you have there across, check it landed, then delete the originals:
-
-```bash
-cp -an memory/. local/memory/
-cp -an credentials/. local/credentials/
-```
-
-Both root paths stay git-ignored until you remove them, so an upgrade cannot
-expose content you have not moved yet.
-
 ## Do Not Store
 
 Credentials, tokens, OTPs, and payment data belong in `local/credentials/`, and

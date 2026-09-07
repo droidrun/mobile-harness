@@ -14,11 +14,6 @@ local/**
 !local/credentials/README.md
 !local/credentials/TEMPLATE.md
 
-# Pre-consolidation paths, kept ignored so upgrading cannot expose or commit
-# existing content. Safe to drop once you have moved them under local/.
-memory/
-credentials/
-
 tmp/
 
 # Local QA helpers and experiments. The harness product is Markdown-only.
