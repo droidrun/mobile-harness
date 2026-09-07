@@ -3,15 +3,21 @@ __pycache__/
 .DS_Store
 .venv/
 
-# Local agent-owned state. Keep schemas/templates, ignore real content.
-memory/**
-!memory/
-!memory/README.md
+# Everything the user or the agent owns lives under one ignored root.
+# Keep the rules and templates, ignore real content.
+local/**
+!local/
+!local/README.md
+!local/memory/
+!local/memory/README.md
+!local/credentials/
+!local/credentials/README.md
+!local/credentials/TEMPLATE.md
 
-credentials/**
-!credentials/
-!credentials/README.md
-!credentials/TEMPLATE.md
+# Pre-consolidation paths, kept ignored so upgrading cannot expose or commit
+# existing content. Safe to drop once you have moved them under local/.
+memory/
+credentials/
 
 tmp/
 

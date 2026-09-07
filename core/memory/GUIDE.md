@@ -1,17 +1,17 @@
 ---
 name: mobile-harness-memory
-description: Use before reading or writing mobile-harness local agent memory under memory/. Defines the LLM-owned Markdown wiki convention.
+description: Use before reading or writing mobile-harness local agent memory under local/memory/. Defines the LLM-owned Markdown wiki convention.
 ---
 
 # Mobile Harness Memory
 
-`memory/` means `<harness-root>/memory/`, where `<harness-root>` is the directory containing the harness `AGENTS.md`; resolve it from the harness root, not the current working directory. It is an agent-owned local Markdown wiki for mobile devices. The agent writes operational facts or user preferences which make future Android or iOS runs more reliable. The user does not need to maintain it manually.
+`local/memory/` means `<harness-root>/local/memory/`, where `<harness-root>` is the directory containing the harness `AGENTS.md`; resolve it from the harness root, not the current working directory. It is an agent-owned local Markdown wiki for mobile devices. The agent writes operational facts or user preferences which make future Android or iOS runs more reliable. The user does not need to maintain it manually.
 
 ## Read
 
 At the start of a relevant task:
 
-1. Read `memory/index.md` if it exists.
+1. Read `local/memory/index.md` if it exists.
 2. Read only files referenced by the index that match the current device, package, or failure class.
 3. Treat old facts as hints, not truth. Re-verify when acting on them.
 
@@ -31,12 +31,12 @@ Use this shape:
 - 2026-05-28: Fact. Source: observed via <Mobilerun Cloud|ADB|Android Portal HTTP|iOS Portal app HTTP (6643)|iOS local portal HTTP (mobilerun-ios --local, 8080-8089)|user>. Confidence: high|medium|low.
 ```
 
-Update `memory/index.md` when creating a new memory file.
+Update `local/memory/index.md` when creating a new memory file.
 
 ## Suggested Layout
 
 ```text
-memory/
+local/memory/
   index.md
   environment.md
   failures.md

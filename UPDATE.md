@@ -45,7 +45,7 @@ Rules:
   (dirty files, diverged history) and that local edits to tracked harness
   files will be lost.
 - Never run `git clean -x`, `git clean -fdx`, or delete untracked files.
-  `memory/`, `credentials/`, and `.venv/` live inside this repository as
+  `local/` and `.venv/` live inside this repository as
   ignored directories. `reset --hard` leaves them alone; `git clean -x`
   destroys them.
 - Do not repair a development checkout. If the user says the clone is where

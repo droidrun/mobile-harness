@@ -7,11 +7,11 @@ Read `core/memory/GUIDE.md` before reading or writing here.
 Suggested files:
 
 ```text
-memory/index.md
-memory/environment.md
-memory/failures.md
-memory/devices/<device-alias>.md
-memory/apps/<app-id>.md
+local/memory/index.md
+local/memory/environment.md
+local/memory/failures.md
+local/memory/devices/<device-alias>.md
+local/memory/apps/<app-id>.md
 ```
 
 Never store credentials, tokens, OTPs, payment data, private messages, contacts, or screenshots.

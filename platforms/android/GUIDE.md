@@ -226,4 +226,4 @@ Read only the current package card. Do not scan every app card.
 
 ## Memory
 
-Read or write `memory/` only when operational facts would help future runs. Read `core/memory/GUIDE.md` first. Never store secrets or private screen content.
+Read or write `local/memory/` only when operational facts would help future runs. Read `core/memory/GUIDE.md` first. Never store secrets or private screen content.

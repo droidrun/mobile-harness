@@ -257,4 +257,4 @@ Read only the current bundle card. Do not scan every app card.
 
 ## Memory
 
-Read or write `memory/` only when operational facts would help future runs. Read `core/memory/GUIDE.md` first.
+Read or write `local/memory/` only when operational facts would help future runs. Read `core/memory/GUIDE.md` first.
