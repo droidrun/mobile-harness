@@ -38,7 +38,6 @@ Do not import local drivers directly for ordinary agent work.
 - Stop on credentials, payment, or destructive consent. Continue only if the user explicitly authorized the exact action; otherwise ask the user.
 - Store durable operational facts or useful information for the subsequent runs in `local/memory/` only after reading `core/memory/GUIDE.md`.
 - Store credentials in `local/credentials/` only if the user explicitly asks for local credential files.
-- Everything the user or the agent owns lives under `local/`, which git ignores. Treat a file there as authoritative over the tracked file it mirrors.
 
 ## Platform Routing
 
