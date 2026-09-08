@@ -28,10 +28,10 @@ Ask one short question and wait. Offer concrete options:
 
 ## Local Credential Files
 
-`credentials/` means `<harness-root>/credentials/`, where `<harness-root>` is the directory containing the harness `AGENTS.md`. Resolve it from the harness root, never from the current working directory — outside the harness the folder is not ignored by git. Inside the harness it is local and ignored. If the user explicitly authorizes stored credentials, read only the file for the current app id:
+`local/credentials/` means `<harness-root>/local/credentials/`, where `<harness-root>` is the directory containing the harness `AGENTS.md`. Resolve it from the harness root, never from the current working directory — outside the harness the folder is not ignored by git. Inside the harness it is local and ignored. If the user explicitly authorizes stored credentials, read only the file for the current app id:
 
 ```text
-<harness-root>/credentials/<app-id>.md
+<harness-root>/local/credentials/<app-id>.md
 ```
 
 Example shape:
@@ -48,7 +48,7 @@ Use only the minimum required field. Redact values in logs and summaries.
 
 ## Never
 
-- Write credentials to `memory/`.
+- Write credentials to `local/memory/`.
 - Commit credential files.
 - Print secrets back to the user.
 - Reuse credentials for a different app id.
