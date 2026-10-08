@@ -57,8 +57,8 @@ Install the harness as an agent skill with the [skills CLI](https://skills.sh):
 npx skills add droidrun/mobile-harness
 ```
 
-Update an installed copy with `npx skills update` from the same project. First
-use still requires the Python setup in `install.md`.
+When you want to update an installed copy, run `npx skills update` from the same
+project. First use still requires the Python setup in `install.md`.
 
 ## Manual Install
 
@@ -78,6 +78,10 @@ Tell agents which Python runtime to use:
 ```text
 Use /path/to/mobile-harness/.venv/bin/python for mobile-harness.
 ```
+
+Normal sessions check the installed dependencies and use the existing versions.
+Updates happen only when requested or needed to fix a confirmed compatibility
+problem. See `UPDATE.md`; pinned versions stay fixed unless you approve a change.
 
 Base `mobilerun-core` includes cloud support through `mobilerun-sdk`. The
 `local` extra installs `mobilerun-core-local`, which `mobilerun-core` uses
@@ -171,7 +175,7 @@ Skill-based runtimes can load `SKILL.md`; all runtimes should start with
 - `core/memory/GUIDE.md` only when reading or writing local agent-owned memory.
 - `apps/android/<package>/CARD.md` or `apps/ios/<bundle-id>/CARD.md` only for the foreground app.
 - the same path under `local/apps/` after the shipped card, and prefer it where the two disagree.
-- `UPDATE.md` only when the session-start update (`git pull --ff-only` or `npx skills update`) fails.
+- `UPDATE.md` when an update is requested or a confirmed version incompatibility blocks the task.
 
 
 ## Local Android Modes
@@ -210,4 +214,4 @@ two apart.
 
 ## Local State
 
-Everything the user or the agent owns lives under one git-ignored root, `local/`: `local/memory/` for agent-written memory, `local/credentials/` for optional credential notes, and `local/apps/` for your own app cards or overrides of shipped ones. The repository tracks only their rules and templates, so the session-start `git pull --ff-only` never conflicts with your own content. See `local/README.md`. Agents may write operational memory after reading `core/memory/GUIDE.md`.
+Everything the user or the agent owns lives under one git-ignored root, `local/`: `local/memory/` for agent-written memory, `local/credentials/` for optional credential notes, and `local/apps/` for your own app cards or overrides of shipped ones. The repository tracks only their rules and templates, keeping your own content separate from harness updates. See `local/README.md`. Agents may write operational memory after reading `core/memory/GUIDE.md`.

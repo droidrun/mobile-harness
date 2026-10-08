@@ -7,14 +7,19 @@ Do not import local drivers directly for ordinary agent work.
 
 ## Load Order
 
-1. Update once per session, before platform work (`<harness-root>` is the directory containing this `AGENTS.md`):
-   - `git -C <harness-root> pull --ff-only`
-   - `<harness-root>/.venv/bin/python -m pip install -U "mobilerun-core[local]" mobilerun-core-local mobilerun-sdk`
-   The explicit `mobilerun-core-local` and `mobilerun-sdk` entries keep those
-   runtime packages upgraded even when they are already satisfied transitive
-   dependencies. Agents should still import only `mobilerun_core`.
-   If `<harness-root>/.venv` does not exist yet (a fresh clone or a fresh skills-CLI copy), skip this step and read `install.md` first. Skip the pip step if the libraries are pinned. Run the git pull only if `<harness-root>/.git` exists; without it (for example a copy installed with the skills CLI), `git -C` operates on an enclosing repository — run `npx skills update` from the project where the skill was installed instead. If offline, continue with the current version. On any other failure, read `UPDATE.md`.
-2. Decide the target platform before acting.
+1. Check the installed Python environment once per session, before platform work.
+   Use the user's configured interpreter, or `<harness-root>/.venv/bin/python`
+   by default (`<harness-root>` contains this `AGENTS.md`). With that interpreter
+   as `<python>`, run `<python> -c "from mobilerun_core import Mobilerun"`.
+   If the environment or dependency is missing, first check the interpreter
+   path, then read `install.md` for setup. Otherwise use the installed versions.
+   Do not fetch, pull, run `npx skills update`, or install/upgrade packages as
+   a routine startup step. Read `UPDATE.md` only when the user requests an
+   update or a confirmed version incompatibility blocks the task. Preserve
+   pinned versions unless the user authorizes changing them.
+2. Decide the target platform and backend before acting. For a local backend,
+   also check `<python> -c "from importlib.metadata import version; version('mobilerun-core-local')"`.
+   A missing local dependency is a setup issue; cloud-only work does not require it.
 3. For Android work, read `platforms/android/GUIDE.md`.
 4. For iOS work, read `platforms/ios/GUIDE.md`.
 5. Do not load all files.

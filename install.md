@@ -109,7 +109,7 @@ This repository is a Python `mobilerun-core` harness. If packaging it for OpenCl
 package the repository as a skill directory with the root `SKILL.md` as the
 entrypoint and make the whole directory available to the agent.
 
-Before running device-control code in OpenClaw, install:
+For first-time setup or a missing dependency in OpenClaw, install:
 
 ```bash
 python -m pip install "mobilerun-core[local]"
@@ -121,6 +121,7 @@ provides `MOBILERUN_API_KEY`, set `MOBILERUN_CLOUD_API_KEY` to that value for
 
 ## Updating
 
-Installed clones keep themselves current: `AGENTS.md` instructs agents to run
-`git pull --ff-only` against the repository once per session before platform
-work. Repair steps for clones the soft pull refuses are in `UPDATE.md`.
+Normal sessions check the installed dependencies and use the existing versions.
+Update only when requested or when a confirmed version incompatibility blocks
+the task. `UPDATE.md` covers those updates and repairs; pinned versions remain
+unchanged unless the user authorizes changing them.
