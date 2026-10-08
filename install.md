@@ -6,10 +6,12 @@ Markdown harness with an agent runtime. For day-to-day device work, start with
 
 ## Python Dependency
 
-Install the full `mobilerun-core` surface:
+Install the full `mobilerun-core` surface into `<state-root>` (see `AGENTS.md`):
+the repository directory for a clone, or the plugin data directory for a Claude
+Code plugin install.
 
 ```bash
-cd /path/to/mobile-harness
+cd <state-root>
 python -m venv .venv
 .venv/bin/python -m pip install "mobilerun-core[local]"
 .venv/bin/python -c "from mobilerun_core import Mobilerun"
@@ -23,7 +25,7 @@ commit `.venv/`.
 Tell agents which Python runtime to use:
 
 ```text
-Use /path/to/mobile-harness/.venv/bin/python for mobile-harness.
+Use <state-root>/.venv/bin/python for mobile-harness.
 ```
 
 Base `mobilerun-core` includes cloud support through `mobilerun-sdk`. The
@@ -93,7 +95,19 @@ relative file paths.
 
 ### Claude Code
 
-Add an import to `~/.claude/CLAUDE.md` that points at this repository's
+Install it as a plugin:
+
+```text
+/plugin marketplace add droidrun/mobile-harness
+/plugin install mobile-harness@mobile-harness
+```
+
+The plugin keeps `.venv/` and `local/` in its data directory (`<state-root>`),
+which plugin updates leave in place. Set up the Python dependency there. For an
+install from this repository's marketplace that directory is
+`~/.claude/plugins/data/mobile-harness-mobile-harness/`.
+
+Or add an import to `~/.claude/CLAUDE.md` that points at a clone's
 `AGENTS.md`, for example:
 
 ```markdown

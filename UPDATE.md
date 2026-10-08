@@ -14,15 +14,25 @@ Preserve pinned versions unless the user authorizes changing them.
 
 `<harness-root>` below is the directory containing this repository's
 `AGENTS.md`. When the harness is loaded through a CLAUDE.md import or a skill
-symlink, resolve the real repository path first.
+symlink, resolve the real repository path first. `<state-root>` is defined in
+`AGENTS.md`.
 
 ## Update the Harness
 
-When an update to the harness files is requested or needed, first check that
+If the harness is installed as a Claude Code plugin, update it through the
+plugin manager (`/plugin`, or `claude plugin update mobile-harness@<marketplace>`)
+and do not use git or the skills CLI. A copy added from claude.ai
+(`mobile-harness@synced`) updates itself when Claude Code starts. The new
+version loads after `/reload-plugins` or in a new session; until then
+`<harness-root>` still holds the old files.
+
+Otherwise, when an update to the harness files is requested or needed, first check that
 `<harness-root>/.git` exists. If it does not (for example a copy installed
 with the skills CLI), do not run the pull — `git -C` would operate on an
 enclosing repository — and run `npx skills update` from the project where
-the skill was installed instead.
+the skill was installed instead. `npx skills update` deletes and recopies the
+skill folder, including `local/` and `.venv/`: copy `<state-root>/local/` out
+first, restore it afterward, then redo the `install.md` venv setup.
 
 ```bash
 git -C <harness-root> pull --ff-only
@@ -31,8 +41,8 @@ git -C <harness-root> pull --ff-only
 Handle the result:
 
 - Updated or already up to date: continue.
-- Offline or network failure: continue with the current version. Do not retry
-  in a loop and do not report it as an error.
+- Offline or network failure: continue with the current version and tell the
+  user the update did not run. Do not retry in a loop.
 - `Not possible to fast-forward`, diverged history, or local-changes errors:
   the clone needs repair. See Force Update.
 
@@ -65,7 +75,7 @@ Rules:
 The git pull only refreshes the Markdown harness; Python libraries are
 versioned separately on PyPI. A harness update does not require upgrading
 working dependencies. Below, `<python>` is the configured interpreter, or
-`<harness-root>/.venv/bin/python` if no other environment was specified.
+`<state-root>/.venv/bin/python` if no other environment was specified.
 
 For a confirmed compatibility problem, install a compatible version of only
 the affected package and its required dependencies. For an explicitly

@@ -60,6 +60,17 @@ npx skills add droidrun/mobile-harness
 When you want to update an installed copy, run `npx skills update` from the same
 project. First use still requires the Python setup in `install.md`.
 
+## Claude Code Plugin
+
+```text
+/plugin marketplace add droidrun/mobile-harness
+/plugin install mobile-harness@mobile-harness
+```
+
+The plugin keeps `.venv/` and `local/` in its data directory, which plugin
+updates leave in place. First use still requires the Python setup in
+`install.md`.
+
 ## Manual Install
 
 Install the full public control API:
@@ -214,4 +225,4 @@ two apart.
 
 ## Local State
 
-Everything the user or the agent owns lives under one git-ignored root, `local/`: `local/memory/` for agent-written memory, `local/credentials/` for optional credential notes, and `local/apps/` for your own app cards or overrides of shipped ones. The repository tracks only their rules and templates, keeping your own content separate from harness updates. See `local/README.md`. Agents may write operational memory after reading `core/memory/GUIDE.md`.
+Everything the user or the agent owns lives under one git-ignored root, `local/`: `local/memory/` for agent-written memory, `local/credentials/` for optional credential notes, and `local/apps/` for your own app cards or overrides of shipped ones. The repository tracks only their rules and templates, keeping your own content separate from `git pull` and plugin updates. In a Claude Code plugin install, `local/` lives in the plugin's data directory instead. See `local/README.md`. Agents may write operational memory after reading `core/memory/GUIDE.md`.

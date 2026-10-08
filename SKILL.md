@@ -11,6 +11,16 @@ Mobilerun.
 Start by reading `AGENTS.md`. It routes you to the smallest platform file for
 the current task.
 
+## Paths
+
+When Claude Code loads this skill from a plugin, it fills in:
+
+- `<harness-root>`: `${CLAUDE_PLUGIN_ROOT}`
+- `<state-root>`: `${CLAUDE_PLUGIN_DATA}`
+
+If those still read as `${...}` placeholders, `<harness-root>` and
+`<state-root>` are both the directory containing this file.
+
 ## Primary Control Model
 
 Normal device control always uses:
