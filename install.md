@@ -6,6 +6,30 @@ Markdown harness with an agent runtime. For day-to-day device work, start with
 
 ## Python Dependency
 
+### Fast Path with `uv` (Recommended)
+
+To install cleanly in seconds using [uv](https://github.com/astral-sh/uv):
+
+```bash
+cd /path/to/mobile-harness
+uv venv .venv --python 3.12
+uv pip install --python .venv/bin/python "mobilerun-core[local]"
+./bin/mobile-harness -c "from mobilerun_core import Mobilerun; print('OK')"
+```
+
+You can also run or symlink `./bin/mobile-harness` to `~/.local/bin/mobile-harness` to execute heredoc Python scripts directly:
+
+```bash
+mobile-harness <<'PY'
+from mobilerun_core import Mobilerun
+m = Mobilerun()
+device = m.connect(backend="local-android-adb")
+print(device.ui())
+PY
+```
+
+### Manual Install
+
 Install the full `mobilerun-core` surface:
 
 ```bash

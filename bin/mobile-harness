@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -e
+
+# Resolve script directory even when executed via symlink (e.g. ~/.local/bin/mobile-harness)
+REAL_SCRIPT="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd "$(dirname "$REAL_SCRIPT")/.." && pwd)"
+VENV_PYTHON="${SCRIPT_DIR}/.venv/bin/python"
+
+if [ ! -f "$VENV_PYTHON" ]; then
+    echo "Error: mobile-harness virtual environment not found at $VENV_PYTHON" >&2
+    echo "Please run: uv venv ${SCRIPT_DIR}/.venv --python 3.12 && uv pip install --python ${SCRIPT_DIR}/.venv/bin/python 'mobilerun-core[local]'" >&2
+    exit 1
+fi
+
+export HARNESS_ROOT="${SCRIPT_DIR}"
+export PYTHONPATH="${SCRIPT_DIR}:${PYTHONPATH}"
+
+exec "$VENV_PYTHON" "$@"
