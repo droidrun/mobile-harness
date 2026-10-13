@@ -169,16 +169,19 @@ Default device port is `8080`.
   ambiguous: either an Android Portal without a valid bearer token or a
   token-protected iOS local portal. Ask the user which server owns the port.
 - Every other endpoint requires `Authorization: Bearer <token>`.
-- Verify the token with `GET /version` before connecting through `mobilerun-core`.
+- Verify the URL and token with the `mobilerun-core` check below before relying on Portal HTTP.
 
 Diagnostic probes:
 
 ```bash
 curl -sS "$MOBILERUN_ANDROID_PORTAL_URL/ping"
-curl -sS -H "Authorization: Bearer $MOBILERUN_ANDROID_PORTAL_TOKEN" "$MOBILERUN_ANDROID_PORTAL_URL/version"
-curl -sS -H "Authorization: Bearer $MOBILERUN_ANDROID_PORTAL_TOKEN" "$MOBILERUN_ANDROID_PORTAL_URL/state_full"
-curl -sS -H "Authorization: Bearer $MOBILERUN_ANDROID_PORTAL_TOKEN" "$MOBILERUN_ANDROID_PORTAL_URL/screenshot" -o screenshot.png
+curl -sS "$MOBILERUN_ANDROID_PORTAL_URL/version"
+<python> -c "from mobilerun_core import Mobilerun; Mobilerun().connect(backend='local-android-http').ui(); print('portal ok')"
 ```
+
+The `mobilerun-core` check reads `MOBILERUN_ANDROID_PORTAL_URL` and
+`MOBILERUN_ANDROID_PORTAL_TOKEN` from the environment and fails if the Portal is
+unreachable or the token is wrong.
 
 Do not use raw Portal HTTP for normal actions. For tap, swipe, type, launch,
 screenshot, and UI tree reads, connect with `Mobilerun` and call `device.*`.
