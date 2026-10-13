@@ -9,5 +9,7 @@
   "repository": "https://github.com/droidrun/mobile-harness",
   "license": "MIT",
   "supportUrl": "https://github.com/droidrun/mobile-harness/issues",
-  "privacyPolicyUrl": "https://cloud.mobilerun.ai/legal/privacy-policy"
+  "privacyPolicyUrl": "https://cloud.mobilerun.ai/legal/privacy-policy",
+  "documentationUrl": "https://github.com/droidrun/mobile-harness#readme",
+  "termsOfServiceUrl": "https://cloud.mobilerun.ai/legal/terms-of-service"
 }
