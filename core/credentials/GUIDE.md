@@ -28,10 +28,10 @@ Ask one short question and wait. Offer concrete options:
 
 ## Local Credential Files
 
-`local/credentials/` means `<harness-root>/local/credentials/`, where `<harness-root>` is the directory containing the harness `AGENTS.md`. Resolve it from the harness root, never from the current working directory — outside the harness the folder is not ignored by git. Inside the harness it is local and ignored. If the user explicitly authorizes stored credentials, read only the file for the current app id:
+`local/credentials/` means `<state-root>/local/credentials/`, where `<state-root>` is defined in the harness `AGENTS.md`. Resolve it from there, never from the current working directory, which may be tracked by git. If the user explicitly authorizes stored credentials, read only the file for the current app id:
 
 ```text
-<harness-root>/local/credentials/<app-id>.md
+<state-root>/local/credentials/<app-id>.md
 ```
 
 Example shape:

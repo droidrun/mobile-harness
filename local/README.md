@@ -1,9 +1,9 @@
 # Local
 
 One ignored root for everything the user or the agent owns. Nothing here is
-tracked except this file and the stubs one level down, so the
-`git pull --ff-only` in step 1 of `AGENTS.md` never conflicts with your own
-content.
+tracked except this file and the stubs one level down. Your own content stays
+separate from `git pull` and plugin updates. In a Claude Code plugin install, this tree lives
+in the plugin's data directory, `<state-root>/local/`.
 
 ```text
 local/
