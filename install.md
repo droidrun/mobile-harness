@@ -87,7 +87,7 @@ holds into this repository's `local/`, and ask the user before the deletion:
 
 ```bash
 mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
-ln -sfn "$PWD" "${CODEX_HOME:-$HOME/.codex}/skills/mobile-harness"
+ln -sfn "$(pwd)" "${CODEX_HOME:-$HOME/.codex}/skills/mobile-harness"
 ```
 
 New Codex sessions can then load `mobile-harness` as a skill while preserving
