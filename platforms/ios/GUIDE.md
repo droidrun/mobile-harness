@@ -1,23 +1,30 @@
 ---
 name: ios-mobile-harness
-description: Use for iOS device or Simulator control through mobilerun-core over cloud or ios-portal HTTP. Defines cloud and iOS Portal HTTP modes, observe-act-verify rules, and app-card loading.
+description: Use for iOS device or Simulator control through mobilerun-core over cloud, mobilerun-ios local HTTP, or the deprecated ios-portal app on Simulator. Defines cloud and local iOS modes, observe-act-verify rules, and app-card loading.
 ---
 
 # iOS Mobile Harness
 
 Use this when operating an iPhone, iPad, or iOS Simulator through Mobilerun
-Cloud or `ios-portal`.
+Cloud, `mobilerun-ios`, or the deprecated `ios-portal` app.
 
 ## Scope
 
 - iOS only.
 - Primary API is `mobilerun_core.Mobilerun`.
 - Cloud iOS uses `backend="cloud"`.
-- The local backend `local-ios-http` speaks the `ios-portal` Portal app
-  contract only. It cannot drive the `mobilerun-ios --local` server; see
-  "Two Local iOS Portals" below.
+- Local iOS uses `backend="local-ios-http"`. It detects which local server
+  answers at the URL on the first device call:
+  - **`mobilerun-ios --local <udid>`** for a USB-connected iPhone or iPad.
+    This is the default local path.
+  - **`ios-portal` app** for the iOS Simulator only. `ios-portal` is
+    deprecated; `mobilerun-ios` cannot drive Simulators.
 - Local iOS requires `mobilerun-core` installed with the `local` extra, or `mobilerun-core-local` installed alongside it.
-- No bearer token is required for the local iOS Portal app.
+- Driving `mobilerun-ios` requires a `mobilerun-core` release with
+  `mobilerun-ios` support. An older release fails against a running
+  `mobilerun-ios` server with `ConnectionError: Could not connect to iOS
+  portal ... Mobilerun Portal app`. Treat that as a confirmed version
+  incompatibility and read `UPDATE.md`.
 
 ## Primary Control
 
@@ -29,7 +36,13 @@ m = Mobilerun()
 # Cloud iOS.
 device = m.connect("<cloud-device-id>", backend="cloud")
 
-# Local iOS Portal.
+# Local iPhone through mobilerun-ios --local.
+device = m.connect(backend="local-ios-http", url="http://127.0.0.1:8080")
+
+# mobilerun-ios started with --local-token.
+device = m.connect(backend="local-ios-http", url="http://127.0.0.1:8080", token="...")
+
+# Simulator through the deprecated ios-portal app.
 device = m.connect(backend="local-ios-http", url="http://127.0.0.1:6643")
 
 device.ui()
@@ -38,10 +51,25 @@ device.start_app("com.apple.Preferences")
 device.key("home")
 ```
 
-Use `MOBILERUN_IOS_PORTAL_URL` to omit `url=`.
+Use `MOBILERUN_IOS_PORTAL_URL` to omit `url=` and `MOBILERUN_IOS_PORTAL_TOKEN`
+to omit `token=`.
 
-After connecting, inspect `device.capabilities` and use `device.supports(...)`
-before optional operations.
+After connecting, use `device.supports(...)` before optional operations. On
+`local-ios-http` the first `supports(...)` call detects which server answers
+(one network call). `device.capabilities` never touches the network: before
+the first device call or `supports(...)` it lists only what both local
+servers share. `supports(...)` takes action names; check key names against
+`device.capabilities["buttons"]` after observing once with `device.ui()`.
+
+| Capability | `mobilerun-ios` | `ios-portal` (Simulator) |
+| --- | --- | --- |
+| `ui`, `screenshot`, `time`, `tap`, `swipe`, `type`, `clear_input`, `start_app` | yes | yes |
+| `stop_app`, `list_apps` | yes | no |
+| `install_app` | yes; the path or URL is read on the host running `mobilerun-ios` | no |
+| `uninstall_app`, `execute_script` | no | no |
+| `key` names | `home`, `back`, `enter`, `delete`, `app_switch` | `home` |
+
+Other key names raise `UnsupportedOperation`.
 
 `device.execute_script("<js>")` runs JavaScript in the device's foreground
 Chrome tab and returns its JSON result (`None` when the script returns
@@ -57,13 +85,16 @@ connection failure.
 
 ## Common Helpers
 
-Use the `device` returned by `Mobilerun.connect(...)`:
+Use the `device` returned by `Mobilerun.connect(...)`. The foreground bundle
+id is `device.current_app_id()` (also `ui()["phone_state"]["bundle_id"]`).
+The raw `ui()["a11y_tree"]` shape differs between `mobilerun-ios` and
+`ios-portal`; search it with these helpers instead of walking it directly.
 
 - `device.find_nodes(...)` searches the accessibility tree. `any_contains=`
   matches case-insensitive substrings across text, content description,
   resource id, and accessibility identifier. Nodes may carry `offscreen: True`
   or `hidden: True` when the tree source reports visibility. A missing flag is
-  not proof of visibility; iOS Portal tree sources may not emit them.
+  not proof of visibility; local iOS tree sources may not emit them.
 - `device.tap_node(node)` taps the center of a node and fails clearly if bounds
   are missing or unusable. It may also reject a node flagged hidden.
 - `device.tap_text("label")` taps the first on-screen match across text,
@@ -79,25 +110,36 @@ Use the `device` returned by `Mobilerun.connect(...)`:
   early instead of using the whole swipe budget. Do not re-call it blindly.
 - `device.type("text", clear=True)` clears the focused field before typing
   when text input is supported.
-- `device.clear_input()` is supported by local iOS Portal HTTP.
+- `device.clear_input()` is supported by both local iOS servers.
+- `device.list_apps()` excludes system apps such as Settings and Safari by
+  default. Pass `include_system_apps=True` for a full inventory.
+- `device.wait_for_app("com.apple.springboard")` after `key("home")` or
+  `stop_app(...)`; the foreground app changes about two seconds later.
 
-## Two Local iOS Portals
+Accessibility bounds, `tap`, and `swipe` use iOS points. `device.screenshot()`
+is a base64 PNG in device pixels, which is larger (3x on current iPhones).
+Derive tap targets from nodes, or scale screenshot pixels to points first.
 
-Two local iOS servers exist and speak incompatible HTTP contracts:
+`key("back")` on `mobilerun-ios` performs the left-edge back swipe and can
+fail silently. Verify with `device.ui()`; if the screen did not change, tap
+the navigation bar's back button instead.
 
-- **iOS Portal app** (`ios-portal`): default `http://127.0.0.1:6643`, one
-  port per device (probe 6643-6652), no token. Contract: `GET /device/date`,
-  `GET /state`, `GET /vision/screenshot`. This is the only contract
-  `backend="local-ios-http"` can drive.
-- **`mobilerun-ios --local <udid>`**: a host-side server, default
-  `http://127.0.0.1:8080`, one port per attached device (probe 8080-8089). It
-  speaks the Android-Portal-style contract (`/ping`, `/version`,
-  `/state_full`, `/screenshot`) and serves none of the Portal app endpoints.
-  Tokenless unless started with `--local-token` (mandatory for non-loopback
-  binds); then `Authorization: Bearer <--local-token value>`. Setup guide:
+## Local iOS Servers
+
+Two local iOS servers exist. `backend="local-ios-http"` drives both:
+
+- **`mobilerun-ios --local <udid>`**: a host-side server for USB-connected
+  devices, default `http://127.0.0.1:8080`, one port per attached device
+  (probe 8080-8089). Contract: `GET /ping`, `GET /version`,
+  `GET /state_full`, `GET /screenshot`. Tokenless unless started with
+  `--local-token` (mandatory for non-loopback binds); then pass `token=` or
+  set `MOBILERUN_IOS_PORTAL_TOKEN`. Setup guide:
   https://docs.mobilerun.ai/guides/connect-iphone
+- **`ios-portal` app** (deprecated, Simulator only): default
+  `http://127.0.0.1:6643`, one port per device (probe 6643-6652), no token.
+  Contract: `GET /device/date`, `GET /state`, `GET /vision/screenshot`.
 
-To tell them apart, probe both port ranges:
+To find a running server, probe both port ranges:
 
 ```bash
 for p in $(seq 8080 8089); do curl -sS --max-time 3 -w " [%{http_code}] <- $p\n" "http://127.0.0.1:$p/version"; done
@@ -110,61 +152,97 @@ no HTTP response at all.
 Interpret the responses:
 
 - A 200 body like `{"status":"success","result":"iosportal(..."}` on
-  `/version` identifies the `mobilerun-ios --local` server. Only the
+  `/version` identifies a `mobilerun-ios --local` server. Only the
   `iosportal(` prefix inside the JSON `result` field is decisive.
-- A 200 JSON body with a `date` field on `/device/date` identifies the Portal
-  app. If it serves the target device, connect there:
-  `backend="local-ios-http"` with that base URL (set
-  `MOBILERUN_IOS_PORTAL_URL` or pass `url=`).
-- A 401/403 on `/version` counts as a portal only if the same port answers
+- A 200 JSON body with a `date` field on `/device/date` identifies the
+  `ios-portal` app.
+- A 401/403 on `/version` counts as a server only if the same port answers
   `GET /ping` with the unauthenticated `pong` envelope; both portals exempt
   `/ping` from auth. With the `pong` it is either a `mobilerun-ios --local`
   server started with `--local-token` or a forwarded Android Portal without a
-  bearer token; ask the user which server owns the port. Without the `pong`
-  it is an unrelated authenticated service.
+  bearer token; ask the user which server owns the port and for its token.
+  Without the `pong` it is an unrelated authenticated service.
 - A `pong` from `/ping` is ambiguous; the Android Portal answers the same.
 - Anything else (404, HTML, connection refused) means an unrelated server or
   no server.
+
+Connect to an identified server with `backend="local-ios-http"` and its base
+URL (set `MOBILERUN_IOS_PORTAL_URL` or pass `url=`).
 
 Neither `/version` nor `/device/date` says which device a server serves. On a
 host with several attached devices, correlate first:
 
 ```bash
-ps ax -o pid,command | grep -E "mobilerun-ios|iproxy|xcodebuild" | grep -v grep
+ps ax -o pid,command | grep -E "mobilerun-ios|xcodebuild" | grep -v grep
 ```
 
-A `--local` server's arguments show the UDIDs it was started with (none when
-it auto-discovered devices; its startup log prints the device behind each
-URL). An `iproxy` process shows the UDID behind each forwarded Portal app
-port. A Portal app's `xcodebuild` process shows the simulator name or device
-id in its `-destination` argument. If ownership stays unclear, ask the user.
+A `mobilerun-ios --local` process's arguments show the UDIDs it was started
+with and may include a `--local-token` value; never repeat that value in
+output or chat (none when it auto-discovered devices; its startup log prints the device
+behind each URL in a `serving local droidrun portal` line). An `ios-portal`
+`xcodebuild` process shows the simulator name or id in its `-destination`
+argument. If ownership stays unclear, ask the user.
 
-If the `mobilerun-ios --local` server serves the target device, do not point
-`backend="local-ios-http"` at it and do not start a second portal next to it.
-Report that `mobilerun_core` cannot drive it and ask the user whether to start
-the Portal app instead. A server that serves only other devices does not
-block Portal app setup for the target device.
+Do not start a second server for a device that already has one; one
+`mobilerun-ios` process owns a device at a time and a second one exits with
+`device ... is busy`.
 
 ## Capability Classification
 
 Classify before acting:
 
 1. **Cloud**: the user provided a Mobilerun Cloud device id. Use `backend="cloud"`.
-2. **iOS Portal HTTP**: `MOBILERUN_IOS_PORTAL_URL` is reachable and `GET /device/date`, `GET /state`, and `GET /vision/screenshot` work.
-3. **Blocked**: no cloud device id or reachable iOS Portal is available. Run the port probe in "Two Local iOS Portals" before concluding this; a running `mobilerun-ios --local` server is not "no portal". Then stop and ask the user to provide a cloud device or start `ios-portal`.
+2. **Local `mobilerun-ios`**: a port in 8080-8089 answers `/version` with an
+   `iosportal(` result, or with 401/403 plus a `/ping` `pong` and the user
+   supplied the `--local-token` value.
+3. **Local `ios-portal`** (Simulator): a port in 6643-6652 answers
+   `/device/date` with a `date` field.
+4. **Blocked**: no cloud device id and no local server. Run the port probe in
+   "Local iOS Servers" before concluding this. Then stop and ask the user to
+   provide a cloud device, start `mobilerun-ios --local <udid>` for an
+   iPhone or iPad, or start `ios-portal` for a Simulator.
 
 Cloud requires `MOBILERUN_CLOUD_API_KEY`, `MOBILERUN_API_BASE_URL`, and
 `MOBILERUN_CLOUD_DEVICE_ID`. Use
 `MOBILERUN_API_BASE_URL=https://api.mobilerun.ai/v1` unless the user provides a
 different endpoint.
 
-Use `http://127.0.0.1:6643` as the default local example.
-For cloud devices, skip local iOS Portal setup checks and recovery unless the
-user also provided a local iOS target.
+Use `http://127.0.0.1:8080` as the default local example.
+For cloud devices, skip local iOS setup checks and recovery unless the user
+also provided a local iOS target.
 
 ## Setup Checks
 
-For Simulator:
+For a USB-connected iPhone or iPad, with the device unlocked, trusted, and in
+Developer Mode:
+
+```bash
+mobilerun-ios --version
+mobilerun-ios list
+mobilerun-ios verify <udid>
+mobilerun-ios --local <udid>
+```
+
+Install the CLI with `brew install droidrun/tap/mobilerun-ios` when it is
+missing. Keep `mobilerun-ios --local` running, then confirm in another
+terminal:
+
+```bash
+curl -fsS http://127.0.0.1:8080/ping
+curl -fsS http://127.0.0.1:8080/version
+```
+
+`list` shows only USB devices; Simulators never appear. Local mode needs no
+`mobilerun-ios login`.
+
+When `verify` reports a missing developer disk image or runner app,
+`mobilerun-ios setup <udid>` mounts the image and signs and installs the
+WebDriverAgent runner with the user's Apple signing identity. Ask the user
+before running `setup`; it prompts for signing choices unless given
+`--backend`, `--identity`, and `--non-interactive`. The device must stay
+unlocked while the image mounts.
+
+For a Simulator (deprecated `ios-portal`):
 
 ```bash
 cd /path/to/ios-portal
@@ -172,42 +250,27 @@ cd /path/to/ios-portal
 curl -fsS http://127.0.0.1:6643/device/date
 ```
 
-For a physical device:
+## Local HTTP Probes
 
-Option A, script:
+Raw curl is for health checks and diagnostics only.
+
+`mobilerun-ios`:
 
 ```bash
-cd /path/to/ios-portal
-./device.sh <device-udid>
+IOS_URL="${MOBILERUN_IOS_PORTAL_URL:-http://127.0.0.1:8080}"
+curl -fsS "$IOS_URL/version"
+curl -fsS "$IOS_URL/state_full" -o state.json
 ```
 
-Option B, Xcode:
+Add `-H "Authorization: Bearer $MOBILERUN_IOS_PORTAL_TOKEN"` when the server
+uses `--local-token`.
 
-1. Open `droidrun-ios-portal.xcodeproj`.
-2. Select the physical iPhone or iPad as the run destination.
-3. Check Signing & Capabilities for the app and UI-test targets.
-4. Run Product > Test.
-
-For either physical-device option, keep the XCTest session running. In another
-terminal, forward the device port:
+`ios-portal`:
 
 ```bash
-iproxy -u <device-udid> -s 127.0.0.1 6643:6643
 curl -fsS http://127.0.0.1:6643/device/date
-```
-
-## iOS Portal HTTP Contract
-
-Use `MOBILERUN_IOS_PORTAL_URL` as the base URL. Raw curl is for health checks
-and diagnostics only.
-
-Required probes:
-
-```bash
-IOS_PORTAL_URL="${MOBILERUN_IOS_PORTAL_URL:-http://127.0.0.1:6643}"
-curl -fsS "$IOS_PORTAL_URL/device/date"
-curl -fsS "$IOS_PORTAL_URL/state"
-curl -fsS "$IOS_PORTAL_URL/vision/screenshot" -o screenshot.png
+curl -fsS http://127.0.0.1:6643/state
+curl -fsS http://127.0.0.1:6643/vision/screenshot -o screenshot.png
 ```
 
 Normal actions go through `Mobilerun`:
@@ -217,9 +280,10 @@ import os
 
 from mobilerun_core import Mobilerun
 
-url = os.environ.get("MOBILERUN_IOS_PORTAL_URL", "http://127.0.0.1:6643")
+url = os.environ.get("MOBILERUN_IOS_PORTAL_URL", "http://127.0.0.1:8080")
 m = Mobilerun()
 device = m.connect(backend="local-ios-http", url=url)
+device.ui()
 device.start_app("com.apple.Preferences")
 device.tap(100, 200)
 device.swipe(200, 700, 200, 250, 500)

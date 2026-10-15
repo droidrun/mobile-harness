@@ -34,7 +34,8 @@ internally for:
 
 - local Android ADB with optional Portal: `backend="local-android-adb"`
 - local Android Portal HTTP-only: `backend="local-android-http"`
-- local iOS Portal HTTP: `backend="local-ios-http"`
+- local iOS HTTP (`mobilerun-ios --local`, or the deprecated `ios-portal` app
+  on Simulator): `backend="local-ios-http"`
 
 Agents should still import only `mobilerun_core`:
 
@@ -61,11 +62,18 @@ export MOBILERUN_ANDROID_PORTAL_URL="http://127.0.0.1:18080"
 export MOBILERUN_ANDROID_PORTAL_TOKEN="..."
 ```
 
-Local iOS Portal can use:
+Local iOS can use:
 
 ```bash
-export MOBILERUN_IOS_PORTAL_URL="http://127.0.0.1:6643"
+export MOBILERUN_IOS_PORTAL_URL="http://127.0.0.1:8080"
+# Only when mobilerun-ios runs with --local-token:
+export MOBILERUN_IOS_PORTAL_TOKEN="..."
 ```
+
+A local iPhone or iPad also needs the `mobilerun-ios` CLI on the host it is
+plugged into (`brew install droidrun/tap/mobilerun-ios`) and a one-time device
+setup; see https://docs.mobilerun.ai/guides/connect-iphone. Local mode needs no
+Mobilerun login.
 
 Do not print tokens or API keys in logs, chat, screenshots, or summaries. If an
 existing runtime exposes a differently named Mobilerun key, map it into
