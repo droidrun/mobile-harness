@@ -54,12 +54,12 @@ device.key("home")
 Use `MOBILERUN_IOS_PORTAL_URL` to omit `url=` and `MOBILERUN_IOS_PORTAL_TOKEN`
 to omit `token=`.
 
-After connecting, observe once with `device.ui()`, then inspect
-`device.capabilities` and use `device.supports(...)` before optional
-operations. On `local-ios-http`, `capabilities` never touches the network:
-before the first device call it lists only what both local servers share, so
-`supports("stop_app")` is `False` until `ui()` has run. `supports(...)` takes
-action names; check key names against `device.capabilities["buttons"]`.
+After connecting, use `device.supports(...)` before optional operations. On
+`local-ios-http` the first `supports(...)` call detects which server answers
+(one network call). `device.capabilities` never touches the network: before
+the first device call or `supports(...)` it lists only what both local
+servers share. `supports(...)` takes action names; check key names against
+`device.capabilities["buttons"]` after observing once with `device.ui()`.
 
 | Capability | `mobilerun-ios` | `ios-portal` (Simulator) |
 | --- | --- | --- |
