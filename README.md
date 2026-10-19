@@ -82,9 +82,7 @@ python3.13 -m venv .venv
 .venv/bin/python -c "from mobilerun_core import Mobilerun; from importlib.metadata import version; print('mobilerun-core', version('mobilerun-core'), '/ mobilerun-core-local', version('mobilerun-core-local'))"
 ```
 
-Use Python 3.11, 3.12, or 3.13 to create the venv; Python 3.14 is not
-supported. If `python3.13` is missing, `uv python find '>=3.11,<3.14'` prints a
-compatible interpreter; `install.md` has the details.
+Use Python 3.11-3.13; `uv python find '>=3.11,<3.14'` prints one.
 
 Tell agents which Python runtime to use:
 
