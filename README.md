@@ -47,7 +47,7 @@ Read `install.md` and follow the steps to install `mobile-harness`.
 ## Scope
 
 - Android through `mobilerun-core` using local ADB with optional Portal, Portal HTTP-only, or cloud.
-- iOS through `mobilerun-core` using `ios-portal` HTTP or cloud.
+- iOS through `mobilerun-core` using `mobilerun-ios` local HTTP, cloud, or the `ios-portal` app on Simulator.
 
 ## Skill Install via npx (skills.sh)
 
@@ -107,7 +107,7 @@ from mobilerun_core import Mobilerun
 m = Mobilerun()
 device = m.connect("<cloud-device-id>", backend="cloud")
 device = m.connect("R5CT123456", backend="local-android-adb")
-device = m.connect(backend="local-ios-http", url="http://127.0.0.1:6643")
+device = m.connect(backend="local-ios-http", url="http://127.0.0.1:8080")
 device = m.connect(
     backend="local-android-http",
     url="http://127.0.0.1:18080",
@@ -119,8 +119,8 @@ device.screenshot()
 device.start_app("com.android.settings")
 ```
 
-After connecting, agents should inspect `device.capabilities` and use
-`device.supports(...)` before optional operations.
+After connecting, agents should use `device.supports(...)` before optional
+operations.
 
 `device.execute_script("<js>")` runs JavaScript in the device's foreground
 Chrome tab and returns its JSON result. Cloud devices only; local backends
@@ -151,7 +151,7 @@ Use these helpers through the `device` returned by `Mobilerun.connect(...)`:
   early with `None` when the viewport stops moving; do not re-call it blindly.
 - `device.type("text", clear=True)` clears the focused field before typing
   when the backend supports text input. `device.clear_input()` is available on
-  local Android ADB and local iOS Portal HTTP.
+  cloud and every local backend.
 - `device.list_apps()` excludes system apps by default. Pass
   `include_system_apps=True` when a full inventory is needed and supported.
 
@@ -207,21 +207,21 @@ Without ADB, the harness cannot install, enable, port-forward, or fetch a token
 for Portal.
 Android Mobilerun Portal: https://github.com/droidrun/mobilerun-portal
 
-## Local iOS Mode
+## Local iOS Modes
 
-Local iOS has one active capability mode:
+| Target | Server | Mode |
+| --- | --- | --- |
+| iPhone or iPad over USB | `mobilerun-ios --local <udid>` | `backend="local-ios-http"`, default `http://127.0.0.1:8080`. |
+| iOS Simulator | `ios-portal` app | `backend="local-ios-http"`, default `http://127.0.0.1:6643`. |
 
-- `iOS Portal HTTP`: `backend="local-ios-http"` with `MOBILERUN_IOS_PORTAL_URL` or an explicit URL. `GET /device/date`, `GET /state`, and `GET /vision/screenshot` must work.
-- `Blocked`: no reachable iOS Portal. Start `ios-portal` check info: https://github.com/droidrun/ios-portal
+`backend="local-ios-http"` detects which server answers. `stop_app`,
+`list_apps`, `install_app`, and the `back`, `enter`, `delete`, and
+`app_switch` keys need `mobilerun-ios`.
+`mobilerun-ios` cannot drive Simulators.
 
-The default local iOS Portal example is `http://127.0.0.1:6643`.
-
-A second local iOS server exists: `mobilerun-ios --local <udid>`, default
-`http://127.0.0.1:8080`, setup guide:
-https://docs.mobilerun.ai/guides/connect-iphone. `backend="local-ios-http"`
-speaks only the `ios-portal` contract and cannot connect to that server; do
-not point it at port 8080. `platforms/ios/GUIDE.md` explains how to tell the
-two apart.
+- mobilerun-ios local mode: https://docs.mobilerun.ai/framework/guides/device-setup (iOS tab)
+- iPhone preparation and WDA signing: https://docs.mobilerun.ai/guides/connect-iphone
+- ios-portal: https://github.com/droidrun/ios-portal
 
 ## Local State
 

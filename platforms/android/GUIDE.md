@@ -15,7 +15,6 @@ Mobilerun Portal.
 - Cloud Android uses `backend="cloud"`.
 - Local public Portal only: `com.mobilerun.portal`.
 - Local Android backends require `mobilerun-core` installed with the `local` extra, or `mobilerun-core-local` installed alongside it.
-- Direct raw ADB/curl is for setup checks, diagnostics, and recovery; normal control still goes through `mobilerun_core`.
 
 ## Primary Control
 
@@ -179,9 +178,6 @@ curl -sS -H "Authorization: Bearer $MOBILERUN_ANDROID_PORTAL_TOKEN" "$MOBILERUN_
 curl -sS -H "Authorization: Bearer $MOBILERUN_ANDROID_PORTAL_TOKEN" "$MOBILERUN_ANDROID_PORTAL_URL/state_full"
 curl -sS -H "Authorization: Bearer $MOBILERUN_ANDROID_PORTAL_TOKEN" "$MOBILERUN_ANDROID_PORTAL_URL/screenshot" -o screenshot.png
 ```
-
-Do not use raw Portal HTTP for normal actions. For tap, swipe, type, launch,
-screenshot, and UI tree reads, connect with `Mobilerun` and call `device.*`.
 
 ## ADB-Only Fallback
 
