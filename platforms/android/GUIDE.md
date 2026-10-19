@@ -69,12 +69,15 @@ Gate it with `device.supports("execute_script")` and know its quirks:
 
 ## Common Helpers
 
-Prefer accessibility-tree helpers over guessed coordinates:
+Prefer accessibility-tree helpers over guessed coordinates. The foreground
+package is `device.current_app_id()` (`None` on an empty tree).
 
 - `device.find_nodes(...)` accepts filters such as `text=`, `desc=`,
   `resource_id=`, `text_contains=`, `desc_contains=`, and `any_contains=`.
   `any_contains=` matches case-insensitive substrings across text, content
-  description, resource id, and accessibility identifier. Nodes may carry two
+  description, resource id, and accessibility identifier. Before
+  mobilerun-core 1.9.0 it checked only the first non-empty field; there, use
+  `desc_contains=` for labels kept in the content description. Nodes may carry two
   flags: `offscreen: True` marks a real element outside the viewport, scroll
   to reach it; `hidden: True` marks an element Android reports as not visible,
   collapsed or covered, so scrolling alone may not reveal it unless it is also
@@ -104,6 +107,12 @@ Prefer accessibility-tree helpers over guessed coordinates:
   ADB-only mode supports ordinary text input; Portal remains the richer path
   when available.
 - `device.clear_input()` clears the focused field when supported.
+- `device.key("back")` takes a name from `device.capabilities["buttons"]`
+  (`back`, `home`, `enter`, `delete`, `tab`, ...). `power` is listed but
+  raises `ValueError`; wake a locked screen with `key("wakeup")` and a swipe up.
+- `device.wait_for_app("<package>", timeout=10)` polls until that package is
+  in the foreground and returns `False` on timeout. Use it after `start_app`,
+  `key("home")`, or `stop_app`.
 - `device.list_apps()` excludes system apps by default. Use
   `device.list_apps(include_system_apps=True)` when a full installed-package
   inventory is needed and supported. Raw `pm list packages` is a diagnostic
@@ -114,8 +123,8 @@ Prefer accessibility-tree helpers over guessed coordinates:
 Classify before acting:
 
 1. **Cloud**: the user provided a Mobilerun Cloud device id. Use `backend="cloud"`.
-2. **ADB + Portal**: ADB works and Portal is reachable. Use `backend="local-android-adb"`; core will use Portal-enhanced features automatically.
-3. **ADB-only**: ADB works but Portal is unavailable. Use `backend="local-android-adb"`; core still supports ADB-native UI, text input, screenshots, and app lifecycle.
+2. **ADB + Portal**: ADB works and Portal's accessibility service answers (see ADB Checks). Use `backend="local-android-adb"`; core will use Portal-enhanced features automatically.
+3. **ADB-only**: ADB works but Portal is missing or its accessibility service is off. Use `backend="local-android-adb"`; core connects without an error and still supports ADB-native UI, text input, screenshots, and app lifecycle.
 4. **Portal HTTP-only**: ADB is unavailable but the user provided a reachable Portal HTTP URL and bearer token. Use `backend="local-android-http"`.
 5. **Blocked**: no cloud device id, ADB, or reachable authenticated Portal HTTP is available. Stop and ask the user to provide a cloud device, enable ADB, or provide Portal HTTP access.
 
@@ -144,8 +153,19 @@ Use ADB when available:
 adb devices -l
 adb -s <serial> shell pm list packages com.mobilerun.portal
 adb -s <serial> shell content query --uri content://com.mobilerun.portal/version
-adb -s <serial> shell content query --uri content://com.mobilerun.portal/auth_token
+adb -s <serial> shell settings get secure enabled_accessibility_services
+adb -s <serial> shell content query --uri content://com.mobilerun.portal/ping
 ```
+
+A `version` answer only proves the Portal app is installed. Portal features
+also need its accessibility service: the services list contains
+`com.mobilerun.portal/` and `ping` returns `"result":"pong"`. `Accessibility
+service not available` means the service is off; core then runs ADB-only
+without an error. Enable the service with the recovery guide when Portal
+features are needed.
+
+Do not query `content://com.mobilerun.portal/auth_token` in routine checks: it
+prints the bearer token. `backend="local-android-adb"` needs no token.
 
 If Portal is installed and ADB is available, enable HTTP on the device and forward it locally:
 
