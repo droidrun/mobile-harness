@@ -83,7 +83,7 @@ requested refresh of all unpinned Mobilerun packages, use:
 
 ```bash
 <python> -m pip install -U "mobilerun-core[local]" mobilerun-core-local mobilerun-sdk
-<python> -c "from mobilerun_core import Mobilerun"
+<python> -c "from mobilerun_core import Mobilerun; from importlib.metadata import version; print('mobilerun-core', version('mobilerun-core'), '/ mobilerun-core-local', version('mobilerun-core-local'))"
 ```
 
 The explicit `mobilerun-core-local` and `mobilerun-sdk` entries are intentional:

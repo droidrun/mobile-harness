@@ -12,15 +12,18 @@ Code plugin install.
 
 ```bash
 cd <state-root>
-python -m venv .venv
+python3.13 -m venv .venv
 .venv/bin/python -m pip install "mobilerun-core[local]"
-.venv/bin/python -c "from mobilerun_core import Mobilerun"
+.venv/bin/python -c "from mobilerun_core import Mobilerun; from importlib.metadata import version; print('mobilerun-core', version('mobilerun-core'), '/ mobilerun-core-local', version('mobilerun-core-local'))"
 ```
 
-Use Python 3.11, 3.12, or 3.13 to create the venv. `mobilerun-core` and
-`mobilerun-core-local` currently require Python `>=3.11,<3.14`. If the default
-`python` is not compatible, use another compatible interpreter, but do not
-commit `.venv/`.
+`mobilerun-core` and `mobilerun-core-local` require Python `>=3.11,<3.14`;
+`python3.12` or `python3.11` also work. Plain `python` may be missing, and
+`python3` may be 3.14, where pip finds no matching distribution. To find a
+compatible interpreter, run `uv python find '>=3.11,<3.14'` and use the printed
+path in place of `python3.13`; `uv python install 3.13` adds one. With uv you
+can also create the venv with `uv venv --seed --python 3.13 .venv` (`--seed`
+installs the pip used above). Do not commit `.venv/`.
 
 Tell agents which Python runtime to use:
 
