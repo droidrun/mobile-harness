@@ -72,7 +72,6 @@ adb -s <serial> shell ime set '<previous-ime-id>'
 For `uiautomator output did not contain XML`, use one of:
 
 - Observe with `device.screenshot()` and act on screenshot coordinates.
-- Leave the screen (`device.key("back")`) and read `device.ui()` again.
 - Enable the Portal accessibility service (above) and read `device.ui()` again.
 
 ## Portal HTTP Recovery
