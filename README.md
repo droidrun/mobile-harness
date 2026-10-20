@@ -96,8 +96,7 @@ problem. See `UPDATE.md`; pinned versions stay fixed unless you approve a change
 
 Base `mobilerun-core` includes cloud support through `mobilerun-sdk`. The
 `local` extra installs `mobilerun-core-local`, which `mobilerun-core` uses
-internally for local Android and iOS backends. Agents should still import only
-`mobilerun_core`.
+internally for local Android and iOS backends.
 
 ## Primary API
 

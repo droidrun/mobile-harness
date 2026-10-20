@@ -34,14 +34,6 @@ internally for:
 - local Android Portal HTTP-only: `backend="local-android-http"`
 - local iOS Portal HTTP: `backend="local-ios-http"`
 
-Agents should still import only `mobilerun_core`:
-
-```python
-from mobilerun_core import Mobilerun
-```
-
-Do not teach agents to use `mobilerun_core_local` directly for normal control.
-
 ## Environment
 
 Cloud devices require:

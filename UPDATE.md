@@ -88,7 +88,7 @@ requested refresh of all unpinned Mobilerun packages, use:
 
 The explicit `mobilerun-core-local` and `mobilerun-sdk` entries are intentional:
 they force already-installed transitive runtime packages to upgrade in the
-selected venv. Normal agent code should still import only `mobilerun_core`.
+selected venv.
 
 If offline, continue with the current version when it works. If the identified
 incompatibility still blocks the task, report the blocker rather than retrying
