@@ -155,8 +155,8 @@ Use these helpers through the `device` returned by `Mobilerun.connect(...)`:
   `include_system_apps=True` when a full inventory is needed and supported.
 - `device.open_deep_link(...)`, `device.get_clipboard()`,
   `device.set_clipboard(...)`, `device.grant_permission(...)` and
-  `device.stop_app(..., clear_data=True)` depend on the backend; the platform
-  guides list where each works.
+  `device.stop_app(..., clear_data=True)` depend on the backend; check
+  `device.supports(...)` first.
 - `device.ui(filter=False)` returns the unfiltered tree, including off-screen
   nodes.
 

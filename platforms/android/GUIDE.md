@@ -49,16 +49,6 @@ if device.supports("stop_app"):
     device.stop_app("com.android.settings")
 ```
 
-| Capability | Cloud | ADB + Portal | ADB-only | Portal HTTP-only |
-| --- | --- | --- | --- | --- |
-| `open_deep_link` | yes | yes | yes | yes (Portal accessibility on) |
-| `get_clipboard`, `set_clipboard` | yes | yes | no | yes |
-| `grant_permission` | `POST_NOTIFICATIONS` only | yes | yes | no |
-| `stop_app(clear_data=True)` | yes | yes | yes | no |
-| `install_app` (HITL-gated) | no | yes | yes | no |
-| `uninstall_app` (HITL-gated) | yes | yes | yes | no |
-| `execute_script` | browser devices | no | no | no |
-
 Clipboard reads need the Mobilerun Keyboard as the input method;
 `local-android-adb` selects it on connect.
 
