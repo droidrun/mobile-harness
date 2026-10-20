@@ -15,6 +15,7 @@ Use this only after a concrete failure.
 - **No Portal HTTP**: `/ping` fails or port is not reachable.
 - **Bad token**: `/ping` works but `/version` returns `401`.
 - **No accessibility state**: HTTP/content provider returns accessibility unavailable or empty state.
+- **UI dump failed**: `device.ui()` raises `ValueError: uiautomator output did not contain XML` (ADB-only UI dump on a screen that never goes idle, such as Settings > About phone).
 - **Input failed**: tap/type returns success but the UI did not change.
 - **App blocked**: permission dialog, login wall, credential screen, crash, or frozen UI.
 
@@ -65,6 +66,13 @@ the id and escape any `$` as `\$`, as above:
 ```bash
 adb -s <serial> shell ime set '<previous-ime-id>'
 ```
+
+## UI Dump Recovery
+
+For `uiautomator output did not contain XML`, use one of:
+
+- Observe with `device.screenshot()` and act on screenshot coordinates.
+- Enable the Portal accessibility service (above) and read `device.ui()` again.
 
 ## Portal HTTP Recovery
 

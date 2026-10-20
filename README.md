@@ -77,12 +77,12 @@ Install the full public control API:
 
 ```bash
 cd /path/to/mobile-harness
-python -m venv .venv
+"$(command -v python3.13 || command -v python3.12 || command -v python3.11)" -m venv .venv
 .venv/bin/python -m pip install "mobilerun-core[local]"
-.venv/bin/python -c "from mobilerun_core import Mobilerun"
+.venv/bin/python -c "from mobilerun_core import Mobilerun; from importlib.metadata import version; print('mobilerun-core', version('mobilerun-core'), '/ mobilerun-core-local', version('mobilerun-core-local'))"
 ```
 
-Use Python 3.11, 3.12, or 3.13 to create the venv.
+Needs Python 3.11-3.13; if none is on `PATH`, `uv python find '>=3.11,<3.14'` prints one.
 
 Tell agents which Python runtime to use:
 
@@ -96,8 +96,7 @@ problem. See `UPDATE.md`; pinned versions stay fixed unless you approve a change
 
 Base `mobilerun-core` includes cloud support through `mobilerun-sdk`. The
 `local` extra installs `mobilerun-core-local`, which `mobilerun-core` uses
-internally for local Android and iOS backends. Agents should still import only
-`mobilerun_core`.
+internally for local Android and iOS backends.
 
 ## Primary API
 

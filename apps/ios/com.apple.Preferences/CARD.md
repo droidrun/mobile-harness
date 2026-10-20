@@ -6,7 +6,10 @@ Use this card only when iOS Settings is the foreground app or the task explicitl
 
 ## Useful Labels
 
-- Settings search may appear near the top of the root Settings screen.
+- On iOS 26 the root Settings search field (placeholder `Search`) is in the
+  bottom toolbar.
+- The root list also has a `Search` row (search settings pane) with the same
+  label.
 - Back navigation labels vary by current pane.
 - Permission and privacy panes can require precise labels.
 
