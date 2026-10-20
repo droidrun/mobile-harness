@@ -111,8 +111,7 @@ package is `device.current_app_id()` (`None` on an empty tree).
   in the foreground and returns `False` on timeout.
 - `device.list_apps()` excludes system apps by default. Use
   `device.list_apps(include_system_apps=True)` when a full installed-package
-  inventory is needed and supported. Raw `pm list packages` is a diagnostic
-  fallback, not the normal control API.
+  inventory is needed and supported.
 
 ## Capability Classification
 
