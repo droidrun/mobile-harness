@@ -1,6 +1,6 @@
 ---
 name: ios-mobile-recovery
-description: Use after iOS Portal HTTP, XCTest session, state, screenshot, accessibility, input, or app-control failures while using mobile-harness.
+description: Use after mobilerun-ios or ios-portal HTTP, WebDriverAgent or XCTest session, state, screenshot, accessibility, input, or app-control failures while using mobile-harness.
 ---
 
 # iOS Recovery
@@ -9,92 +9,60 @@ Use this only after a concrete iOS control failure.
 
 ## Classify The Failure
 
-- **No iOS Portal**: `MOBILERUN_IOS_PORTAL_URL` is missing or `/device/date` cannot be reached. Run Portal Triage before Setup Recovery.
-- **Portal server exited**: requests start failing after earlier success, usually because the XCTest runner stopped.
-- **State extraction failure**: `/state` returns HTTP 200 but required state fields are missing or repeatedly empty while the UI is stable.
-- **Screenshot failure**: `/vision/screenshot` is non-PNG, zero bytes, or times out.
+- **No local server**: the first device call raises
+  `ConnectionError: No iOS portal answered at ...`. Run Server Triage.
+- **Server exited**: requests start failing after earlier success, usually
+  because the `mobilerun-ios` process or the Simulator's `ios-portal` XCTest
+  runner stopped.
+- **State extraction failure**: `ui()` returns but required state fields are
+  missing or repeatedly empty while the UI is stable.
+- **Screenshot failure**: `screenshot()` is not a PNG, is empty, or times out.
 - **Input failed**: tap/type returns success but the UI did not change.
 - **App blocked**: Crash or frozen UI.
 
-## Portal Triage
+## Server Triage
 
-A failed `/device/date` probe does not prove that no portal is running. The
-`mobilerun-ios --local <udid>` server takes one port per attached device
-starting at 8080 and serves none of `/device/date`, `/state`, or
-`/vision/screenshot`. Probe both port ranges and interpret the responses by
-the rules in "Two Local iOS Portals" in `platforms/ios/GUIDE.md`:
-
-```bash
-for p in $(seq 8080 8089); do curl -sS --max-time 3 -w " [%{http_code}] <- $p\n" "http://127.0.0.1:$p/version"; done
-for p in $(seq 6643 6652); do curl -sS --max-time 3 -w " [%{http_code}] <- $p\n" "http://127.0.0.1:$p/device/date"; done
-```
-
-Each line prints the response body followed by the HTTP status; `[000]` means
-no HTTP response at all.
-
-If a `/version` body's `result` field starts with `iosportal(`, a
-`mobilerun-ios --local` server is running; `backend="local-ios-http"` cannot
-connect to it. Neither `/version` nor `/device/date` says which device a
-server serves. On a multi-device host, correlate every hit with the target
-via `ps ax -o pid,command | grep -E "mobilerun-ios|iproxy|xcodebuild"`: a
-`--local` server's arguments show the UDIDs it was started with, and its
-startup log prints the device behind each URL; an `iproxy` process shows the
-UDID behind each forwarded Portal app port; an `xcodebuild` process shows a
-Portal app's simulator name or device id in its `-destination` argument.
-When a `--local` server serves the target device, do not start a
-second portal next to it; report the mismatch and ask the user whether to
-switch to the Portal app. When ownership stays unclear, ask the user. A 401/403 counts as a
-portal only if the same port that returned it answers
-`curl -sS --max-time 3 "http://127.0.0.1:<port>/ping"` with the
-unauthenticated `pong` envelope; both portals exempt `/ping` from auth. With the `pong` it is
-a token-protected `mobilerun-ios --local` or a forwarded Android Portal; ask
-the user which server owns the port. Without the `pong` it is an unrelated
-authenticated service.
-
-A `/device/date` hit that serves the target device means its Portal app is
-already running on that port; do not run Setup Recovery. Verify the port with
-the probes in "iOS Portal HTTP Contract" in `platforms/ios/GUIDE.md`, then
-reconnect through `Mobilerun` with `backend="local-ios-http"` and that base
-URL (set `MOBILERUN_IOS_PORTAL_URL` or pass `url=`).
-
-Continue with Setup Recovery when no port returned a portal-shaped response
-(no `iosportal(` `/version` result, no 401/403 corroborated by a `/ping`
-`pong`, and no `/device/date` body with a `date` field), or when every
-portal-shaped hit serves a device other than the target. Another device's
-healthy portal never blocks recovery of the target, but its port stays taken;
-follow the port-in-use rule in Setup Recovery. Unrelated HTTP answers (404,
-HTML, or 401/403 without the `pong`) do not block Setup Recovery.
+Probe both port ranges as in "Local iOS Servers" in `platforms/ios/GUIDE.md`.
+If a server for the target answers, reconnect to its URL. Otherwise start one
+(Setup Recovery).
 
 ## Setup Recovery
 
-If Simulator Portal is not running:
+USB iPhone:
 
 ```bash
-cd /path/to/ios-portal
-./simulator.sh "<simulator-name>"
-curl -fsS http://127.0.0.1:6643/device/date
+mobilerun-ios list
+mobilerun-ios verify <udid>
 ```
 
-If a physical-device Portal is not reachable:
+Then start `mobilerun-ios --local <udid>` as in Setup in
+`platforms/ios/GUIDE.md`. If it exits, `/tmp/mobilerun-ios.log` says why:
 
-```bash
-cd /path/to/ios-portal
-./device.sh <device-udid>
-iproxy -u <device-udid> -s 127.0.0.1 6643:6643
-curl -fsS http://127.0.0.1:6643/device/date
-```
+- Device not in `list`: it is not connected over USB or not trusted.
+- Runner app missing: `mobilerun-ios setup <udid>`. Runner installed but
+  WebDriverAgent never starts (expired signature):
+  `mobilerun-ios setup <udid> --reinstall`.
+- `device ... is busy`: another `mobilerun-ios` process owns the device. Use
+  its server if it is a `--local` one; otherwise stop that process and retry.
+- `address already in use`: start with a free
+  `--local-addr 127.0.0.1:<port>` in 8081-8089.
 
-If the port is already in use by another device's healthy portal, ask the user for a clean port setup; do not stop that portal. If it is held by a stale process for the target device, stop that process. Do not guess a different device.
+When requests keep failing while the server is still running, stop it and
+start it again; it restarts a wedged WebDriverAgent runner itself.
+
+Simulator: start `ios-portal` as in Setup in `platforms/ios/GUIDE.md`.
 
 ## Action Recovery
 
 After a failed tap, swipe, type, launch, or key:
 
-1. Observe again with `/state`.
+1. Observe again with `device.ui()`.
 2. Check whether an app changed the target.
-3. Use accessibility/state bounds when available.
+3. Use accessibility bounds when available; they are in points, not
+   screenshot pixels.
 4. Use screenshot for verification.
-5. Try one alternative action.
+5. Try one alternative action. After a missed `key("back")`, tap the
+   navigation bar's back button.
 6. If still stuck, stop and report the exact blocker.
 
 ## Credential Or Human-Gated Screens
