@@ -49,6 +49,19 @@ if device.supports("stop_app"):
     device.stop_app("com.android.settings")
 ```
 
+| Capability | Cloud | ADB + Portal | ADB-only | Portal HTTP-only |
+| --- | --- | --- | --- | --- |
+| `open_deep_link` | yes | yes | yes | yes (Portal accessibility on) |
+| `get_clipboard`, `set_clipboard` | yes | yes | no | yes |
+| `grant_permission` | `POST_NOTIFICATIONS` only | yes | yes | no |
+| `stop_app(clear_data=True)` | yes | yes | yes | no |
+| `install_app` (HITL-gated) | no | yes | yes | no |
+| `uninstall_app` (HITL-gated) | yes | yes | yes | no |
+| `execute_script` | browser devices | no | no | no |
+
+Clipboard reads need the Mobilerun Keyboard as the input method;
+`local-android-adb` selects it on connect.
+
 `device.execute_script("<js>")` runs JavaScript in the device's foreground
 Chrome tab and returns its JSON result (`None` when the script returns
 `undefined`). Cloud devices only; local backends raise `UnsupportedOperation`.
@@ -111,6 +124,12 @@ package is `device.current_app_id()` (`None` on an empty tree).
 - `device.list_apps()` excludes system apps by default. Use
   `device.list_apps(include_system_apps=True)` when a full installed-package
   inventory is needed and supported.
+- `device.open_deep_link("<uri>")` opens a deep link; `package_name=` pins
+  the app and `action=` sets the intent action.
+- `device.grant_permission("<package>", "CAMERA")` grants a runtime
+  permission; a bare name means `android.permission.<NAME>`.
+- `device.ui(filter=False)` returns the unfiltered tree, including off-screen
+  nodes.
 
 ## Capability Classification
 

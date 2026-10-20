@@ -53,7 +53,9 @@ servers share until the first device call.
 | `ui`, `screenshot`, `time`, `tap`, `swipe`, `type`, `clear_input`, `start_app` | yes | yes |
 | `stop_app`, `list_apps` | yes | no |
 | `install_app` (HITL-gated; the path or URL is read on the host) | yes | no |
-| `uninstall_app`, `execute_script` | no | no |
+| `uninstall_app` (HITL-gated) | yes | no |
+| `get_clipboard`, `set_clipboard`, `open_deep_link` | yes | no |
+| `grant_permission`, `stop_app(clear_data=True)`, `execute_script` | no | no |
 | `key` names | `home`, `back`, `enter`, `delete`, `app_switch` | `home` |
 
 Check `device.capabilities["buttons"]` before pressing a key; other names
@@ -101,6 +103,10 @@ Use the `device` returned by `Mobilerun.connect(...)`:
 - `device.list_apps()` excludes system apps such as Settings; pass
   `include_system_apps=True` for all of them.
 - On `mobilerun-ios`, `stop_app(...)` raises when the app is not running.
+- `device.open_deep_link("https://...")` opens the URL in its default app;
+  `package_name="<bundle-id>"` opens it in that app.
+- `device.ui(filter=False)` returns the unfiltered tree, including off-screen
+  nodes (`mobilerun-ios` only).
 
 Accessibility bounds, `tap`, and `swipe` use iOS points; local
 `device.screenshot()` is a base64 PNG in device pixels (3x on current
