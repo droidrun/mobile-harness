@@ -77,12 +77,12 @@ Install the full public control API:
 
 ```bash
 cd /path/to/mobile-harness
-python3.13 -m venv .venv
+"$(command -v python3.13 || command -v python3.12 || command -v python3.11)" -m venv .venv
 .venv/bin/python -m pip install "mobilerun-core[local]"
 .venv/bin/python -c "from mobilerun_core import Mobilerun; from importlib.metadata import version; print('mobilerun-core', version('mobilerun-core'), '/ mobilerun-core-local', version('mobilerun-core-local'))"
 ```
 
-Use Python 3.11-3.13; `uv python find '>=3.11,<3.14'` prints one.
+Needs Python 3.11-3.13; if none is on `PATH`, `uv python find '>=3.11,<3.14'` prints one.
 
 Tell agents which Python runtime to use:
 
