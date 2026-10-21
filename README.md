@@ -231,3 +231,11 @@ Android Mobilerun Portal: https://github.com/droidrun/mobilerun-portal
 ## Local State
 
 Everything the user or the agent owns lives under one git-ignored root, `local/`: `local/memory/` for agent-written memory, `local/credentials/` for optional credential notes, and `local/apps/` for your own app cards or overrides of shipped ones. The repository tracks only their rules and templates, keeping your own content separate from `git pull` and plugin updates. In a Claude Code plugin install, `local/` lives in the plugin's data directory instead. See `local/README.md`. Agents may write operational memory after reading `core/memory/GUIDE.md`.
+
+## Network and Data
+
+- Setup installs `mobilerun-core` and `mobilerun-core-local` from PyPI.
+- Cloud devices: device commands, screenshots, and UI state go through the Mobilerun API (`api.mobilerun.ai`) with your `MOBILERUN_CLOUD_API_KEY`. See the [Mobilerun privacy policy](https://cloud.mobilerun.ai/legal/privacy-policy).
+- Android Portal setup downloads the Portal APK from GitHub releases and reads its version map from `droidrun/gists` on GitHub.
+- Local devices: ADB and Portal traffic stays on your machine.
+- Agent memory and optional credential notes stay in `local/` on your machine.
