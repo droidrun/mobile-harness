@@ -153,6 +153,12 @@ Use these helpers through the `device` returned by `Mobilerun.connect(...)`:
   cloud and every local backend.
 - `device.list_apps()` excludes system apps by default. Pass
   `include_system_apps=True` when a full inventory is needed and supported.
+- `device.open_deep_link(...)`, `device.get_clipboard()`,
+  `device.set_clipboard(...)`, `device.grant_permission(...)` and
+  `device.stop_app(..., clear_data=True)` depend on the backend; check
+  `device.supports(...)` first.
+- `device.ui(filter=False)` returns the unfiltered tree, including off-screen
+  nodes.
 
 ## Cloud Mode
 

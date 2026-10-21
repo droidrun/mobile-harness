@@ -111,6 +111,12 @@ package is `device.current_app_id()` (`None` on an empty tree).
 - `device.list_apps()` excludes system apps by default. Use
   `device.list_apps(include_system_apps=True)` when a full installed-package
   inventory is needed and supported.
+- `device.open_deep_link("<uri>")` opens a deep link; `package_name=` pins
+  the app and `action=` sets the intent action.
+- `device.grant_permission("<package>", "CAMERA")` grants a runtime
+  permission; a bare name means `android.permission.<NAME>`.
+- `device.ui(filter=False)` returns the unfiltered tree, including off-screen
+  nodes.
 
 ## Capability Classification
 
