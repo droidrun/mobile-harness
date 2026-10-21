@@ -49,9 +49,6 @@ if device.supports("stop_app"):
     device.stop_app("com.android.settings")
 ```
 
-Clipboard reads need the Mobilerun Keyboard as the input method;
-`local-android-adb` selects it on connect.
-
 `device.execute_script("<js>")` runs JavaScript in the device's foreground
 Chrome tab and returns its JSON result (`None` when the script returns
 `undefined`). Cloud devices only; local backends raise `UnsupportedOperation`.
