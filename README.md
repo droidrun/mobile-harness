@@ -19,10 +19,11 @@ needed.
 ## Benchmarks
 
 We evaluated mobile-harness on AndroidWorld and iOSWorld using a standard coding
-agent with **GPT-6 Astra low**, app cards, and persistent memory.
+agent with app cards and persistent memory. Android used **gpt-6-astra / low**;
+iOS used **gpt-6-astra / medium** and **gpt-6-luna / high**.
 
 <p align="center">
-  <a href="https://mobilerun.ai/benchmark/"><img src="assets/benchmark-results.png" width="900" alt="AndroidWorld: 116 tasks, 100% mean score, 100% binary pass rate, 116/116 full-score tasks. iOSWorld: 133 tasks, 98.24% mean score, 93.23% binary pass rate, 124/133 full-score tasks." /></a>
+  <a href="https://mobilerun.ai/benchmark/"><img src="assets/benchmark-results.png" width="900" alt="AndroidWorld: 116 tasks, 100% mean score, 100% binary pass rate, 116/116 full-score tasks. iOSWorld: 133 tasks, 98.34% mean official score, 92.48% binary pass rate, 123/133 full-score tasks, and 10 partial-score tasks." /></a>
 </p>
 
 [AndroidWorld tasks](https://mobilerun.ai/benchmark/?platform=android#tasks) · [iOSWorld tasks](https://mobilerun.ai/benchmark/?platform=ios#tasks)
