@@ -77,6 +77,8 @@ versioned separately on PyPI. A harness update does not require upgrading
 working dependencies. Below, `<python>` is the configured interpreter, or
 `<state-root>/.venv/bin/python` if no other environment was specified.
 
+On Windows, `<python>` is `<state-root>\.venv\Scripts\python.exe`. The commands below are written for bash and have not been tested on Windows; adapt them to PowerShell.
+
 For a confirmed compatibility problem, install a compatible version of only
 the affected package and its required dependencies. For an explicitly
 requested refresh of all unpinned Mobilerun packages, use:
