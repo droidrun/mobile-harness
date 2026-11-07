@@ -85,6 +85,8 @@ cd /path/to/mobile-harness
 
 Needs Python 3.11-3.13; if none is on `PATH`, `uv python find '>=3.11,<3.14'` prints one.
 
+On Windows, follow the Windows (PowerShell) section of [`install.md`](install.md) instead, and use `<path>\.venv\Scripts\python.exe` as the Python runtime.
+
 Tell agents which Python runtime to use:
 
 ```text

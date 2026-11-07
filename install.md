@@ -35,6 +35,47 @@ internally for:
 - local iOS HTTP (`mobilerun-ios --local`, or the `ios-portal` app
   on Simulator): `backend="local-ios-http"`
 
+### Windows (PowerShell)
+
+The commands above are for macOS and Linux. On Windows, use PowerShell and run these in `<state-root>`. Python 3.11-3.13 is required (3.14 is not supported); run `uv python install 3.12` first if no supported version is installed.
+
+```powershell
+uv venv --python 3.12 .venv
+uv pip install --python .venv\Scripts\python.exe "mobilerun-core[local]"
+```
+
+`mobilerun-core` currently imports `fcntl`, which Windows does not have, so `from mobilerun_core import Mobilerun` fails with `ModuleNotFoundError` (see issue #24). Until the library handles this, add a small stand-in module to the environment:
+
+```powershell
+@'
+# Windows stand-in so mobilerun_core can import. Repository sync needs real locking.
+LOCK_EX = 2
+
+
+def flock(fd, operation):
+    raise OSError("fcntl.flock is unavailable on Windows: repository sync is not supported")
+'@ | Set-Content -Encoding ascii .venv\Lib\site-packages\fcntl.py
+```
+
+Then run the same check as above, with the Windows interpreter path:
+
+```powershell
+.venv\Scripts\python.exe -c "from mobilerun_core import Mobilerun; from importlib.metadata import version; print('mobilerun-core', version('mobilerun-core'), '/ mobilerun-core-local', version('mobilerun-core-local'))"
+```
+
+Tell agents which Python runtime to use:
+
+```text
+Use <state-root>\.venv\Scripts\python.exe for mobile-harness.
+```
+
+Notes for Windows:
+
+- Repository sync (`sync_skills`, `sync_scripts`) is not available; with the stand-in it stops with a clear error instead of running without a lock.
+- Tested: local Android over ADB (connect, read the UI, screenshot, start an app). Cloud and iOS were not tested on Windows.
+- Set environment variables in PowerShell with `$env:NAME = "value"` instead of `export`.
+- The `ln -sfn` Codex registration below is for macOS and Linux and has not been tested on Windows.
+
 ## Environment
 
 Cloud devices require:
