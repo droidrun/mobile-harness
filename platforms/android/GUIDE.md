@@ -80,6 +80,15 @@ package is `device.current_app_id()` (`None` on an empty tree).
   collapsed or covered, so scrolling alone may not reveal it unless it is also
   offscreen. A missing flag is not proof of visibility; older tree sources do
   not emit `hidden`.
+- Returned nodes are dicts with camelCase keys, unlike the snake_case filter
+  arguments: `text`, `contentDescription`, `resourceId`, `className`,
+  `packageName`, `boundsInScreen` (`left`, `top`, `right`, `bottom`), plus
+  `center` and `tappable` added by core. State flags depend on the tree
+  source: Portal emits `isChecked`, `isSelected`, `isEnabled`, `isClickable`;
+  the ADB fallback, used when Portal's accessibility service is off or a
+  Portal read fails, emits `checked`, `selected`, `enabled`, `clickable`. Read
+  both, e.g. `node.get("isChecked", node.get("checked"))`, and treat a missing
+  key as unknown, not `False`.
 - `device.tap_node(node)` taps the center of a node and fails clearly if bounds
   are missing or unusable. Before any bounds check, it raises a distinct error
   for a node flagged hidden unless the node is also offscreen; change the UI
